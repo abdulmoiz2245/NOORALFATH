@@ -61,3 +61,56 @@ Techonology Used.
  You must have to stich with shadcn/vue componets complete design.
 
 
+these are the Components in shadcn vue
+Sidebar
+Accordion
+Alert
+Alert Dialog
+Aspect Ratio
+Avatar
+Badge
+Breadcrumb
+Button
+Calendar
+Card
+Carousel
+Checkbox
+Collapsible
+Combobox
+Command
+Context Menu
+Data Table
+Date Picker
+Dialog
+Drawer
+Dropdown Menu
+Form
+Hover Card
+Input
+Label
+Menubar
+Navigation Menu
+Number Field
+Pagination
+PIN Input
+Popover
+Progress
+Radio Group
+Range Calendar
+Resizable
+Scroll Area
+Select
+Separator
+Sheet
+Skeleton
+Slider
+Sonner
+Stepper
+Switch
+Table
+Tabs
+Tags Input
+Textarea
+Toast
+Toggle
+Toggle Group
