@@ -14,8 +14,13 @@ use Illuminate\Support\Facades\Route;
 
 Route::middleware('auth')->group(function () {
     // Company Profile Routes
-    Route::resource('company', CompanyController::class)->except(['destroy']);
-    
+    Route::get('/company', [CompanyController::class, 'index'])->name('company.index');
+    Route::get('/company/create', [CompanyController::class, 'create'])->name('company.create');
+    Route::post('/company', [CompanyController::class, 'store'])->name('company.store');
+    Route::get('/company/{id}/edit', [CompanyController::class, 'edit'])->name('company.edit');
+    Route::post('/company/{id}', [CompanyController::class, 'update'])->name('company.update');
+    Route::patch('/company/{id}', [CompanyController::class, 'update'])->name('company.patch');
+
     // Client Management Routes
     Route::resource('clients', ClientController::class);
     
@@ -28,6 +33,7 @@ Route::middleware('auth')->group(function () {
     Route::post('invoices/{invoice}/send', [InvoiceController::class, 'send'])->name('invoices.send');
     Route::get('invoices/{invoice}/pdf', [InvoiceController::class, 'generatePdf'])->name('invoices.pdf');
     Route::patch('invoices/{invoice}/status', [InvoiceController::class, 'updateStatus'])->name('invoices.update-status');
+    Route::get('api/invoices/filter-data', [InvoiceController::class, 'getFilterData'])->name('invoices.filter-data');
     
     // PDF Download Routes
     Route::get('invoices/{invoice}/payments/{payment}/download-pdf', [InvoiceController::class, 'downloadPaymentPdf'])->name('invoices.payments.download-pdf');

@@ -150,7 +150,7 @@ const getQuotationStatusBadge = (status: string) => {
 const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat('en-US', {
         style: 'currency',
-        currency: 'USD'
+        currency: 'AED'
     }).format(amount);
 };
 
@@ -167,15 +167,15 @@ const formatDateLong = (dateString: string) => {
 };
 
 const totalInvoices = computed(() => {
-    return props.project.invoices.reduce((sum, invoice) => sum + invoice.total, 0);
+    return (props.project.invoices || []).reduce((sum, invoice) => sum + invoice.total, 0);
 });
 
 const totalQuotations = computed(() => {
-    return props.project.quotations.reduce((sum, quotation) => sum + quotation.total, 0);
+    return (props.project.quotations || []).reduce((sum, quotation) => sum + quotation.total, 0);
 });
 
 const totalExpenses = computed(() => {
-    return props.project.expenses.reduce((sum, expense) => sum + expense.amount, 0);
+    return (props.project.expenses || []).reduce((sum, expense) => sum + expense.amount, 0);
 });
 
 const profitMargin = computed(() => {
@@ -428,7 +428,7 @@ const daysRemaining = computed(() => {
                     <CardHeader>
                         <div class="flex items-center justify-between">
                             <div>
-                                <CardTitle>Project Invoices ({{ project.invoices.length }})</CardTitle>
+                                <CardTitle>Project Invoices ({{ project.invoices?.length || 0 }})</CardTitle>
                                 <CardDescription>All invoices related to this project</CardDescription>
                             </div>
                             <Button size="sm" as-child>
@@ -440,7 +440,7 @@ const daysRemaining = computed(() => {
                         </div>
                     </CardHeader>
                     <CardContent>
-                        <div v-if="project.invoices.length === 0" class="text-center py-8 text-gray-500">
+                        <div v-if="!project.invoices || project.invoices.length === 0" class="text-center py-8 text-gray-500">
                             <FileText class="w-12 h-12 mx-auto mb-4 text-gray-300" />
                             <p>No invoices found for this project</p>
                         </div>
@@ -473,7 +473,7 @@ const daysRemaining = computed(() => {
                     <CardHeader>
                         <div class="flex items-center justify-between">
                             <div>
-                                <CardTitle>Project Quotations ({{ project.quotations.length }})</CardTitle>
+                                <CardTitle>Project Quotations ({{ project.quotations?.length || 0 }})</CardTitle>
                                 <CardDescription>All quotations related to this project</CardDescription>
                             </div>
                             <Button size="sm" as-child>
@@ -485,7 +485,7 @@ const daysRemaining = computed(() => {
                         </div>
                     </CardHeader>
                     <CardContent>
-                        <div v-if="project.quotations.length === 0" class="text-center py-8 text-gray-500">
+                        <div v-if="!project.quotations || project.quotations.length === 0" class="text-center py-8 text-gray-500">
                             <FileText class="w-12 h-12 mx-auto mb-4 text-gray-300" />
                             <p>No quotations found for this project</p>
                         </div>
@@ -518,7 +518,7 @@ const daysRemaining = computed(() => {
                     <CardHeader>
                         <div class="flex items-center justify-between">
                             <div>
-                                <CardTitle>Project Expenses ({{ project.expenses.length }})</CardTitle>
+                                <CardTitle>Project Expenses ({{ project.expenses?.length || 0 }})</CardTitle>
                                 <CardDescription>All expenses related to this project</CardDescription>
                             </div>
                             <Button size="sm" as-child>
@@ -530,7 +530,7 @@ const daysRemaining = computed(() => {
                         </div>
                     </CardHeader>
                     <CardContent>
-                        <div v-if="project.expenses.length === 0" class="text-center py-8 text-gray-500">
+                        <div v-if="!project.expenses || project.expenses.length === 0" class="text-center py-8 text-gray-500">
                             <DollarSign class="w-12 h-12 mx-auto mb-4 text-gray-300" />
                             <p>No expenses found for this project</p>
                         </div>

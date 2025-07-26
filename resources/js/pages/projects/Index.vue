@@ -122,7 +122,7 @@ const formatDate = (date: string) => {
                     </CardContent>
                 </Card>
 
-                <Card>
+                <!-- <Card>
                     <CardHeader class="flex flex-row items-center justify-between space-y-0 pb-2">
                         <CardTitle class="text-sm font-medium">Total Budget</CardTitle>
                         <DollarSign class="h-4 w-4 text-muted-foreground" />
@@ -132,7 +132,7 @@ const formatDate = (date: string) => {
                             ${{ props.projects.reduce((sum, p) => sum + (p.budget || 0), 0).toLocaleString() }}
                         </div>
                     </CardContent>
-                </Card>
+                </Card> -->
             </div>
 
             <!-- Search and Filters -->

@@ -77,7 +77,7 @@ class ProjectController extends Controller
      */
     public function show(Project $project): Response
     {
-        $project->load(['client', 'invoices.items']);
+        $project->load(['client', 'invoices.items', 'quotations', 'expenses']);
         
         return Inertia::render('projects/Show', [
             'project' => $project

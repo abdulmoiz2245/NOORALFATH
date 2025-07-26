@@ -90,7 +90,7 @@ const getStatusColor = (status: string) => {
 const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat('en-US', {
         style: 'currency',
-        currency: 'USD'
+        currency: 'AED'
     }).format(amount);
 };
 
@@ -119,7 +119,7 @@ const formatDate = (date: string) => {
             </div>
 
             <!-- Stats Cards -->
-            <div class="grid gap-4 md:grid-cols-4">
+            <!-- <div class="grid gap-4 md:grid-cols-4">
                 <Card>
                     <CardHeader class="flex flex-row items-center justify-between space-y-0 pb-2">
                         <CardTitle class="text-sm font-medium">Total Value</CardTitle>
@@ -159,7 +159,7 @@ const formatDate = (date: string) => {
                         <div class="text-2xl font-bold text-red-600">{{ stats.rejected }}</div>
                     </CardContent>
                 </Card>
-            </div>
+            </div> -->
 
             <!-- Quotations Table -->
             <Card>
@@ -254,7 +254,7 @@ const formatDate = (date: string) => {
                                                     <Edit class="w-4 h-4" />
                                                 </Link>
                                             </Button>
-                                            <Button variant="outline" size="sm">
+                                            <!-- <Button variant="outline" size="sm">
                                                 <Copy class="w-4 h-4" />
                                             </Button>
                                             <Button variant="outline" size="sm">
@@ -262,7 +262,7 @@ const formatDate = (date: string) => {
                                             </Button>
                                             <Button variant="outline" size="sm">
                                                 <Download class="w-4 h-4" />
-                                            </Button>
+                                            </Button> -->
                                         </div>
                                     </td>
                                 </tr>

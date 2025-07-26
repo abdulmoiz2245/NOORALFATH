@@ -22,4 +22,10 @@ class Company extends Model
     protected $casts = [
         'bank_details' => 'array',
     ];
+
+    public function getBankDetailsAttribute($value)
+    {
+        return json_decode($value, true);
+    }
+    
 }

@@ -15,7 +15,8 @@ class CompanyController extends Controller
     public function index()
     {
         $company = Company::first();
-        
+        $bankDetails = json_decode($company->bank_details, true);
+        $company->bank_details = $bankDetails;
         if (!$company) {
             return redirect()->route('company.create');
         }
@@ -47,6 +48,8 @@ class CompanyController extends Controller
             'tax_number' => 'nullable|string|max:255',
             'registration_number' => 'nullable|string|max:255',
             'bank_details' => 'nullable|array',
+            'logo' => 'nullable|string',
+            'signature' => 'nullable|string',
         ]);
 
         Company::create($validated);
@@ -68,8 +71,18 @@ class CompanyController extends Controller
     /**
      * Show the form for editing the specified resource.
      */
-    public function edit(Company $company): Response
+    public function edit(Company $company = null)
     {
+        // If no company is passed, get the first one (since there should only be one company profile)
+        if (!$company) {
+            $company = Company::first();
+        }
+        $bankDetails = json_decode($company->bank_details, true);
+        $company->bank_details = $bankDetails;
+        if (!$company) {
+            return redirect()->route('company.create');
+        }
+
         return Inertia::render('company/Edit', [
             'company' => $company
         ]);
@@ -78,8 +91,19 @@ class CompanyController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, Company $company)
+    public function update(Request $request, Company $company = null)
     {
+        // If no company is passed, get the first one (since there should only be one company profile)
+        if (!$company) {
+            $company = Company::first();
+        }
+        
+        if (!$company) {
+            return redirect()->route('company.create')
+                ->with('error', 'No company profile found. Please create one first.');
+        }
+
+
         $validated = $request->validate([
             'name' => 'required|string|max:255',
             'address' => 'nullable|string',
@@ -88,8 +112,27 @@ class CompanyController extends Controller
             'website' => 'nullable|string|max:255',
             'tax_number' => 'nullable|string|max:255',
             'registration_number' => 'nullable|string|max:255',
-            'bank_details' => 'nullable|array',
+            'bank_name' => 'nullable|string|max:255',
+            'account_number' => 'nullable|string|max:255',
+            'account_holder' => 'nullable|string|max:255',
+            'swift_code' => 'nullable|string|max:255',
+            'iban_number' => 'nullable|string|max:255',
+            'logo' => 'nullable|string',
+            'signature' => 'nullable|string',
         ]);
+
+        // Convert bank details to JSON if provided
+        if (isset($validated['bank_name']) || isset($validated['account_number']) ||
+            isset($validated['account_holder']) || isset($validated['swift_code']) ||
+            isset($validated['iban_number'])) {
+            $validated['bank_details'] = json_encode([
+                'bank_name' => $validated['bank_name'] ?? null,
+                'account_number' => $validated['account_number'] ?? null,
+                'account_holder' => $validated['account_holder'] ?? null,
+                'swift_code' => $validated['swift_code'] ?? null,
+                'iban_number' => $validated['iban_number'] ?? null,
+            ]);
+        }
 
         $company->update($validated);
 

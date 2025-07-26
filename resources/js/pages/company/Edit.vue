@@ -16,8 +16,10 @@ import { ref, computed } from 'vue';
 interface BankDetails {
     bank_name?: string;
     account_number?: string;
-    routing_number?: string;
+    swift_code?: string;
     account_holder?: string;
+    iban_number?: string;
+
 }
 
 interface Company {
@@ -53,15 +55,15 @@ const breadcrumbs: BreadcrumbItem[] = [
     },
     {
         title: 'Company Settings',
-        href: '/companies',
+        href: '/company',
     },
     {
         title: props.company.name,
-        href: `/companies/${props.company.id}`,
+        href: `/company/${props.company.id}`,
     },
     {
         title: 'Edit',
-        href: `/companies/${props.company.id}/edit`,
+        href: `/company/${props.company.id}/edit`,
     },
 ];
 
@@ -77,8 +79,9 @@ const form = useForm({
     registration_number: props.company.registration_number || '',
     bank_name: props.company.bank_details?.bank_name || '',
     account_number: props.company.bank_details?.account_number || '',
-    routing_number: props.company.bank_details?.routing_number || '',
+    swift_code: props.company.bank_details?.swift_code || '',
     account_holder: props.company.bank_details?.account_holder || '',
+    iban_number: props.company.bank_details?.iban_number || '',
     remove_logo: false,
     remove_signature: false,
 });
@@ -106,13 +109,14 @@ const submit = () => {
     const bankDetails = {
         bank_name: form.bank_name,
         account_number: form.account_number,
-        routing_number: form.routing_number,
+        swift_code: form.swift_code,
         account_holder: form.account_holder,
+        iban_number: form.iban_number,
     };
     formData.append('bank_details', JSON.stringify(bankDetails));
     formData.append('_method', 'PUT');
 
-    form.post(`/companies/${props.company.id}`, {
+    form.post(`/company/${props.company.id}`, {
         data: formData,
         forceFormData: true,
         onSuccess: () => {
@@ -125,7 +129,7 @@ const submit = () => {
 };
 
 const deleteCompany = () => {
-    router.delete(`/companies/${props.company.id}`, {
+    router.delete(`/company/${props.company.id}`, {
         onSuccess: () => {
             success('Success!', 'Company deleted successfully');
         },
@@ -225,7 +229,7 @@ const formatDate = (dateString: string) => {
             <div class="flex items-center justify-between">
                 <div class="flex items-center space-x-4">
                     <Button variant="outline" size="sm" as-child>
-                        <Link :href="`/companies/${company.id}`">
+                        <Link :href="`/company`">
                             <ArrowLeft class="w-4 h-4 mr-2" />
                             Back to Company
                         </Link>
@@ -386,13 +390,25 @@ const formatDate = (dateString: string) => {
                             </div>
 
                             <div class="space-y-2">
-                                <Label for="routing_number">Routing Number</Label>
+                                <Label for="swift_code">Swift Code</Label>
                                 <Input
-                                    id="routing_number"
-                                    v-model="form.routing_number"
-                                    placeholder="Enter routing number"
+                                    id="swift_code"
+                                    v-model="form.swift_code"
+                                    placeholder="Enter swift code"
                                 />
                             </div>
+                        </div>
+                         <div class="grid gap-4 md:grid-cols-2">
+                            <div class="space-y-2">
+                                <Label for="iban_number">IBAN#</Label>
+                                <Input
+                                    id="iban_number"
+                                    v-model="form.iban_number"
+                                    placeholder="Enter IBAN number"
+                                />
+                            </div>
+
+                           
                         </div>
                     </CardContent>
                 </Card>
@@ -507,7 +523,7 @@ const formatDate = (dateString: string) => {
                 <!-- Form Actions -->
                 <div class="flex justify-end space-x-4">
                     <Button variant="outline" type="button" as-child>
-                        <Link :href="`/companies/${company.id}`">Cancel</Link>
+                        <Link :href="`/company/${company.id}`">Cancel</Link>
                     </Button>
                     <Button type="submit" :disabled="form.processing">
                         <Save class="w-4 h-4 mr-2" />

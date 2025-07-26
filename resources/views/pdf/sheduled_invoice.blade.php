@@ -372,13 +372,13 @@
             <td style="width:461pt;border-right-style:solid;border-right-width:1pt" colspan="7">
                 <p class="s8" style="padding-top: 5pt;padding-right: 2pt;text-indent: 0pt;text-align: right;">
                     {{ fmod($schedule->percentage, 1) == 0 ? number_format($schedule->percentage, 0) : number_format($schedule->percentage, 2) }}%
-                    Payment — {{ $schedule->due_date }}</p>
+                    Payment — {{ \Carbon\Carbon::parse($schedule->due_date)->format('d/m/Y') }}</p>
                 </p>
             </td>
             <td
                 style="width:61pt;border-top-style:solid;border-top-width:2pt;border-left-style:solid;border-left-width:1pt;border-bottom-style:solid;border-bottom-width:1pt;border-right-style:solid;border-right-width:1pt">
                 <p class="s3" style="padding-top: 4pt;padding-left: 5pt;text-indent: 0pt;text-align: left;">AED
-                    10,875.375</p>
+                    {{ number_format($schedule->amount, 2) }}</p>
             </td>
         </tr>
         <tr style="height:16pt">
@@ -389,20 +389,21 @@
             <td
                 style="width:61pt;border-top-style:solid;border-top-width:1pt;border-left-style:solid;border-left-width:1pt;border-bottom-style:solid;border-bottom-width:1pt;border-right-style:solid;border-right-width:1pt">
                 <p class="s9" style="padding-top: 2pt;padding-left: 4pt;text-indent: 0pt;text-align: left;">AED
-                    25,375.88</p>
+                   {{ number_format($invoice->balance_due, 2) }}  </p>
             </td>
         </tr>
         @endif
     </table>
+    @if(count($invoice->paymentSchedules) > 1)
     <h3 style="padding-left: 6pt;text-indent: 0pt;text-align: left;">PAYMENT TERMS:</h3>
-    <p class="s10" style="padding-left: 6pt;text-indent: 0pt;line-height: 115%;text-align: left;">30% Advance 30%
-        Matrial Delivery To Site 40%Work complete</p>
+    <p class="s10" style="padding-left: 6pt;text-indent: 0pt;line-height: 115%;text-align: left;">{{ implode(', ', $invoice->paymentSchedules->pluck('description')->toArray()) }}</p>
+    @endif
     <p style="text-indent: 0pt;text-align: left;"><br /></p>
     <p class="s11" style="padding-top: 3pt;padding-left: 5pt;text-indent: 0pt;text-align: left;">BANK DETAILS:&nbsp;</p>
-    <h3 style="padding-left: 5pt;text-indent: 0pt;text-align: left;">Account Title: NOOR ALFATH TECHNICAL SERVICES
-        L.L.C. Account #: 019101343075</h3>
-    <h3 style="padding-left: 5pt;text-indent: 0pt;line-height: 112%;text-align: left;">IBAN #: AE160330000019101343075
-        SWIFT CODE: BOMLAEAD</h3>
+    <h3 style="padding-left: 5pt;text-indent: 0pt;text-align: left;">Account Title: {{ $company->bank_details['account_holder'] }}
+        . Account #:  {{ $company->bank_details['account_number'] }}</h3>
+    <h3 style="padding-left: 5pt;text-indent: 0pt;line-height: 112%;text-align: left;">IBAN #: {{ $company->bank_details['iban_number'] }}
+        , SWIFT CODE: {{ $company->bank_details['swift_code'] }}</h3>
     <div>
         <p style="text-indent: 0pt;text-align: left;"><br /></p>
         <h4 style="padding-bottom: 1pt;padding-left: 10pt;text-indent: 0pt;line-height: 120%;text-align: right;">
@@ -421,63 +422,6 @@
         </p>
     </div>
 
-    @if(isset($payment) && $type === 'payment_receipt')
-    <!-- Payment Information Section -->
-    <div style="margin-top: 20px; border-top: 1px solid #000; padding-top: 10px;">
-        <h3 style="color: #161616; font-family: Arial, sans-serif; font-weight: bold; font-size: 12pt; margin-bottom: 10px;">PAYMENT DETAILS</h3>
-        <table style="width: 100%; font-family: Arial, sans-serif; font-size: 9pt;">
-            <tr>
-                <td style="width: 50%; padding: 3px;"><strong>Payment Amount:</strong></td>
-                <td style="width: 50%; padding: 3px;">AED {{ number_format($payment->amount, 2) }}</td>
-            </tr>
-            <tr>
-                <td style="padding: 3px;"><strong>Payment Method:</strong></td>
-                <td style="padding: 3px;">{{ ucwords(str_replace('_', ' ', $payment->payment_method)) }}</td>
-            </tr>
-            <tr>
-                <td style="padding: 3px;"><strong>Payment Date:</strong></td>
-                <td style="padding: 3px;">{{ \Carbon\Carbon::parse($payment->payment_date)->format('d/m/Y') }}</td>
-            </tr>
-            <tr>
-                <td style="padding: 3px;"><strong>Status:</strong></td>
-                <td style="padding: 3px;">{{ ucfirst($payment->status) }}</td>
-            </tr>
-            @if($payment->notes)
-            <tr>
-                <td style="padding: 3px; vertical-align: top;"><strong>Notes:</strong></td>
-                <td style="padding: 3px;">{{ $payment->notes }}</td>
-            </tr>
-            @endif
-        </table>
-    </div>
-    @endif
-
-    @if(isset($schedule) && $type === 'invoice')
-    <!-- Schedule Information Section -->
-    <div style="margin-top: 20px; border-top: 1px solid #000; padding-top: 10px;">
-        <h3 style="color: #161616; font-family: Arial, sans-serif; font-weight: bold; font-size: 12pt; margin-bottom: 10px;">PAYMENT SCHEDULE</h3>
-        <table style="width: 100%; font-family: Arial, sans-serif; font-size: 9pt;">
-            <tr>
-                <td style="width: 50%; padding: 3px;"><strong>Schedule Amount:</strong></td>
-                <td style="width: 50%; padding: 3px;">AED {{ number_format($schedule->amount, 2) }}</td>
-            </tr>
-            <tr>
-                <td style="padding: 3px;"><strong>Due Date:</strong></td>
-                <td style="padding: 3px;">{{ \Carbon\Carbon::parse($schedule->due_date)->format('d/m/Y') }}</td>
-            </tr>
-            <tr>
-                <td style="padding: 3px;"><strong>Status:</strong></td>
-                <td style="padding: 3px;">{{ ucfirst($schedule->status) }}</td>
-            </tr>
-            @if($schedule->description)
-            <tr>
-                <td style="padding: 3px; vertical-align: top;"><strong>Description:</strong></td>
-                <td style="padding: 3px;">{{ $schedule->description }}</td>
-            </tr>
-            @endif
-        </table>
-    </div>
-    @endif
 
     <p style="text-indent: 0pt;text-align: left;"><span>
             <table border="0" cellspacing="0" cellpadding="0" style="margin-left: auto";>

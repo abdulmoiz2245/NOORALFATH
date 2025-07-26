@@ -13,6 +13,7 @@ import { ArrowLeft, Save, Plus, Trash2 } from 'lucide-vue-next';
 import { Link } from '@inertiajs/vue3';
 import { useToast } from '@/composables/useToast';
 import { ref, computed } from 'vue';
+import { visibility } from 'html2canvas/dist/types/css/property-descriptors/visibility';
 
 interface Client {
     id: number;
@@ -30,6 +31,7 @@ interface Product {
 interface Props {
     clients: Client[];
     products: Product[];
+    nextQuotationNumber: string;
 }
 
 const props = defineProps<Props>();
@@ -56,6 +58,7 @@ const form = useForm({
     description: '',
     valid_until: '',
     notes: '',
+    quotation_number: props.nextQuotationNumber || '',
     items: [
         {
             product_id: '',
@@ -106,7 +109,7 @@ const totalAmount = computed(() => {
 const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat('en-US', {
         style: 'currency',
-        currency: 'USD'
+        currency: 'AED'
     }).format(amount);
 };
 
@@ -189,6 +192,14 @@ const submit = () => {
                                 :class="{ 'border-red-500': form.errors.title }"
                             />
                             <InputError :message="form.errors.title" />
+
+                            <Input
+                                id="quotation_number"
+                                type="hidden"
+                                v-model="form.quotation_number"
+                                placeholder="Quotation number"
+                                :class="{ 'border-red-500': form.errors.quotation_number }"
+                            />
                         </div>
 
                         <div class="space-y-2">
@@ -256,7 +267,7 @@ const submit = () => {
                                                 <SelectValue placeholder="Select product" />
                                             </SelectTrigger>
                                             <SelectContent>
-                                                <SelectItem value="">Custom Item</SelectItem>
+                                                <SelectItem value="nill">Custom Item</SelectItem>
                                                 <SelectItem v-for="product in products" :key="product.id" :value="product.id.toString()">
                                                     {{ product.name }} - {{ formatCurrency(product.price) }}
                                                 </SelectItem>

@@ -1,12 +1,13 @@
 <script setup lang="ts">
 import AppLayout from '@/layouts/AppLayout.vue';
 import { type BreadcrumbItem } from '@/types';
-import { Head } from '@inertiajs/vue3';
+import { Head, useForm } from '@inertiajs/vue3';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Plus, Search, Eye, Edit, Trash2, Users } from 'lucide-vue-next';
 import { Link } from '@inertiajs/vue3';
+import { useToast } from '@/composables/useToast';
 import { ref, computed } from 'vue';
 
 interface Client {
@@ -45,6 +46,8 @@ const breadcrumbs: BreadcrumbItem[] = [
 ];
 
 const searchQuery = ref('');
+const form = useForm({});
+const { success, error } = useToast();
 
 const filteredClients = computed(() => {
     if (!searchQuery.value) return props.clients;
@@ -54,6 +57,19 @@ const filteredClients = computed(() => {
         (client.email && client.email.toLowerCase().includes(searchQuery.value.toLowerCase()))
     );
 });
+
+const deleteClient = (client: Client) => {
+    if (confirm(`Are you sure you want to delete ${client.name}? This action cannot be undone.`)) {
+        form.delete(`/clients/${client.id}`, {
+            onSuccess: () => {
+                success('Success!', 'Client deleted successfully');
+            },
+            onError: () => {
+                error('Error!', 'Failed to delete client.');
+            }
+        });
+    }
+};
 </script>
 
 <template>
@@ -127,7 +143,7 @@ const filteredClients = computed(() => {
                                             <Edit class="w-4 h-4" />
                                         </Link>
                                     </Button>
-                                    <Button variant="outline" size="sm">
+                                    <Button variant="outline" size="sm" @click="deleteClient(client)" :disabled="form.processing">
                                         <Trash2 class="w-4 h-4 text-red-600" />
                                     </Button>
                                 </div>

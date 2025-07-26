@@ -44,16 +44,16 @@ const mainNavItems: NavItem[] = [
         href: '/products',
         icon: Package,
     },
-    {
-        title: 'Vendors',
-        href: '/vendors',
-        icon: Truck,
-    },
-    {
-        title: 'Expenses',
-        href: '/expenses',
-        icon: Receipt,
-    },
+    // {
+    //     title: 'Vendors',
+    //     href: '/vendors',
+    //     icon: Truck,
+    // },
+    // {
+    //     title: 'Expenses',
+    //     href: '/expenses',
+    //     icon: Receipt,
+    // },
     {
         title: 'Reports',
         href: '/reports',
@@ -62,16 +62,16 @@ const mainNavItems: NavItem[] = [
 ];
 
 const footerNavItems: NavItem[] = [
-    {
-        title: 'Github Repo',
-        href: 'https://github.com/laravel/vue-starter-kit',
-        icon: Folder,
-    },
-    {
-        title: 'Documentation',
-        href: 'https://laravel.com/docs/starter-kits#vue',
-        icon: BookOpen,
-    },
+    // {
+    //     title: 'Github Repo',
+    //     href: 'https://github.com/laravel/vue-starter-kit',
+    //     icon: Folder,
+    // },
+    // {
+    //     title: 'Documentation',
+    //     href: 'https://laravel.com/docs/starter-kits#vue',
+    //     icon: BookOpen,
+    // },
 ];
 </script>
 

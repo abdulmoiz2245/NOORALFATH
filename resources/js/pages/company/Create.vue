@@ -74,7 +74,7 @@ const submit = () => {
     };
     formData.append('bank_details', JSON.stringify(bankDetails));
 
-    form.post('/companies', {
+    form.post('/company', {
         data: formData,
         forceFormData: true,
         onSuccess: () => {
@@ -166,7 +166,7 @@ const removeSignature = () => {
                     <Button variant="outline" size="sm" as-child>
                         <Link href="/company">
                             <ArrowLeft class="w-4 h-4 mr-2" />
-                            Back to Companies
+                            Back to company
                         </Link>
                     </Button>
                     <div>
@@ -423,7 +423,7 @@ const removeSignature = () => {
                 <!-- Form Actions -->
                 <div class="flex justify-end space-x-4">
                     <Button variant="outline" type="button" as-child>
-                        <Link href="/companies">Cancel</Link>
+                        <Link href="/company">Cancel</Link>
                     </Button>
                     <Button type="submit" :disabled="form.processing">
                         <Save class="w-4 h-4 mr-2" />

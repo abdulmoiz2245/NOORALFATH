@@ -128,7 +128,7 @@ const getStatusBadgeClass = (status: string) => {
 const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat('en-US', {
         style: 'currency',
-        currency: 'USD'
+        currency: 'AED'
     }).format(amount);
 };
 
@@ -175,7 +175,7 @@ const isExpired = () => {
                 </div>
 
                 <div class="flex space-x-2">
-                    <Button variant="outline" size="sm" @click="duplicateQuotation" :disabled="form.processing">
+                    <!-- <Button variant="outline" size="sm" @click="duplicateQuotation" :disabled="form.processing">
                         <Copy class="w-4 h-4 mr-2" />
                         Duplicate
                     </Button>
@@ -186,7 +186,7 @@ const isExpired = () => {
                     <Button variant="outline" size="sm" @click="downloadPdf" :disabled="form.processing">
                         <Download class="w-4 h-4 mr-2" />
                         Download PDF
-                    </Button>
+                    </Button> -->
                     <Button variant="outline" as-child>
                         <Link :href="`/quotations/${quotation.id}/edit`">
                             <Edit3 class="w-4 h-4 mr-2" />

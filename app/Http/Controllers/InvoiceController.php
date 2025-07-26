@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Invoice;
 use App\Models\Client;
+use App\Models\Company;
 use App\Models\Project;
 use App\Models\Product;
 use App\Models\Payment;
@@ -18,11 +19,30 @@ class InvoiceController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index(): Response
+    public function index(Request $request): Response
     {
-        $invoices = Invoice::with(['client', 'project'])
-            ->withCount(['items'])
-            ->latest()
+        $query = Invoice::with(['client', 'project', 'paymentSchedules'])
+            ->withCount(['items']);
+
+        // Apply filters
+        if ($request->filled('client_id')) {
+            $query->where('client_id', $request->client_id);
+        }
+
+        if ($request->filled('status')) {
+            $query->where('status', $request->status);
+        }
+
+        if ($request->filled('search')) {
+            $query->where(function ($q) use ($request) {
+                $q->where('invoice_number', 'like', '%' . $request->search . '%')
+                  ->orWhereHas('client', function ($clientQuery) use ($request) {
+                      $clientQuery->where('name', 'like', '%' . $request->search . '%');
+                  });
+            });
+        }
+
+        $invoices = $query->latest()
             ->get()
             ->map(function ($invoice) {
                 return [
@@ -40,16 +60,33 @@ class InvoiceController extends Controller
                     'total_amount' => $invoice->total_amount,
                     'items_count' => $invoice->items_count,
                     'created_at' => $invoice->created_at,
+                    'payment_schedules' => $invoice->paymentSchedules->map(function ($schedule) {
+                        return [
+                            'id' => $schedule->id,
+                            'description' => $schedule->description,
+                            'amount' => $schedule->amount,
+                            'due_date' => $schedule->due_date,
+                            'status' => $schedule->status,
+                            'paid_amount' => $schedule->paid_amount,
+                            'paid_date' => $schedule->paid_date,
+                        ];
+                    }),
                 ];
             });
-
+        $totalReceivedAmount = 0;
+        $pendingAmount = 0;
+        foreach ($invoices as $invoice) {
+            foreach ($invoice['payment_schedules'] as $schedule) {
+                $totalReceivedAmount += $schedule['paid_amount'];
+            }
+        }
         // Calculate stats from database
         $stats = [
             'total' => Invoice::sum('total_amount'),
             'pending' => Invoice::where('status', 'pending')->count(),
             'overdue' => Invoice::where('status', 'overdue')->count(),
             'paid' => Invoice::where('status', 'paid')->count(),
-            'paid_amount' => Invoice::where('status', 'paid')->sum('total_amount'),
+            'paid_amount' => $totalReceivedAmount,
             'pending_amount' => Invoice::where('status', 'pending')->sum('total_amount'),
             'overdue_amount' => Invoice::where('status', 'overdue')->sum('total_amount'),
             'draft' => Invoice::where('status', 'draft')->count(),
@@ -505,20 +542,53 @@ class InvoiceController extends Controller
     {
         // Load relationships
         $invoice->load(['client', 'project', 'items.product', 'paymentSchedules.payments']);
-        
+        $company = Company::first();
         // Verify the schedule belongs to this invoice
         if ($schedule->invoice_id !== $invoice->id) {
             abort(404, 'Payment schedule not found for this invoice');
         }
+        $bankDetails = json_decode($company->bank_details, true);
+        $company->bank_details = $bankDetails;
         // Generate PDF using your template
         $pdf = Pdf::loadView('pdf.sheduled_invoice', [
             'invoice' => $invoice,
             'schedule' => $schedule,
-            'type' => 'invoice'
+            'type' => 'invoice',
+            'company' => $company
+        ])->setPaper('a4', 'portrait')->setOptions([
+            'defaultFont' => 'sans-serif',
+      
         ]);
         
         $filename = "invoice-{$invoice->invoice_number}-schedule-{$schedule->id}.pdf";
         
         return $pdf->download($filename);
+    }
+
+    /**
+     * Get filter data for invoices
+     */
+    public function getFilterData()
+    {
+        $clients = Client::select('id', 'name')
+            ->whereHas('invoices')
+            ->orderBy('name')
+            ->get();
+
+        $statuses = Invoice::select('status')
+            ->distinct()
+            ->whereNotNull('status')
+            ->pluck('status')
+            ->map(function ($status) {
+                return [
+                    'value' => $status,
+                    'label' => ucfirst(str_replace('_', ' ', $status))
+                ];
+            });
+
+        return response()->json([
+            'clients' => $clients,
+            'statuses' => $statuses
+        ]);
     }
 }

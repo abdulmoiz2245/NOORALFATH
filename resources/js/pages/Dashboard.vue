@@ -100,7 +100,7 @@ const getStatusColor = (status: string) => {
                     </CardHeader>
                     <CardContent>
                         <div class="text-2xl font-bold">{{ props.stats.totalClients }}</div>
-                        <p class="text-xs text-muted-foreground">+2 from last month</p>
+                        <!-- <p class="text-xs text-muted-foreground">+2 from last month</p> -->
                     </CardContent>
                 </Card>
 
@@ -111,7 +111,7 @@ const getStatusColor = (status: string) => {
                     </CardHeader>
                     <CardContent>
                         <div class="text-2xl font-bold">{{ props.stats.activeProjects }}</div>
-                        <p class="text-xs text-muted-foreground">+3 from last month</p>
+                        <!-- <p class="text-xs text-muted-foreground">+3 from last month</p> -->
                     </CardContent>
                 </Card>
 
@@ -121,8 +121,8 @@ const getStatusColor = (status: string) => {
                         <DollarSign class="h-4 w-4 text-muted-foreground" />
                     </CardHeader>
                     <CardContent>
-                        <div class="text-2xl font-bold">${{ props.stats.monthlyRevenue.toLocaleString() }}</div>
-                        <p class="text-xs text-muted-foreground">+12% from last month</p>
+                        <div class="text-2xl font-bold">AED {{ props.stats.monthlyRevenue.toLocaleString() }}</div>
+                        <!-- <p class="text-xs text-muted-foreground">+12% from last month</p> -->
                     </CardContent>
                 </Card>
 
@@ -153,7 +153,7 @@ const getStatusColor = (status: string) => {
                                     <p class="text-sm text-muted-foreground">{{ invoice.client }}</p>
                                 </div>
                                 <div class="text-right">
-                                    <p class="font-medium">${{ invoice.amount.toLocaleString() }}</p>
+                                    <p class="font-medium">AED {{ invoice.amount.toLocaleString() }}</p>
                                     <span 
                                         :class="getStatusColor(invoice.status)" 
                                         class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium"

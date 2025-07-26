@@ -348,10 +348,10 @@ const getTotalPaid = () => {
                         <Copy class="w-4 h-4 mr-2" />
                         Duplicate
                     </Button>
-                    <Button variant="outline" size="sm" @click="sendInvoice" :disabled="form.processing">
+                    <!-- <Button variant="outline" size="sm" @click="sendInvoice" :disabled="form.processing">
                         <Mail class="w-4 h-4 mr-2" />
                         Send Email
-                    </Button>
+                    </Button> -->
                     <Button variant="outline" as-child>
                         <Link :href="`/invoices/${invoice.id}/edit`">
                             <Edit class="w-4 h-4 mr-2" />
@@ -503,7 +503,7 @@ const getTotalPaid = () => {
                 </CardContent>
             </Card>
 
-            <!-- Payments Summary -->
+            <!-- Payments Summary
             <Card v-if="getAllPayments().length > 0">
                 <CardHeader>
                     <CardTitle class="flex items-center gap-2">
@@ -511,7 +511,7 @@ const getTotalPaid = () => {
                         Payments Received
                     </CardTitle>
                     <CardDescription>
-                        Total received: ${{ formatCurrency(getTotalPaid()) }} of ${{ formatCurrency(invoice.total_amount) }}
+                        Total received: {{ formatCurrency(getTotalPaid()) }} of {{ formatCurrency(invoice.total_amount) }}
                         ({{ ((getTotalPaid() / parseFloat(invoice.total_amount)) * 100).toFixed(1) }}%)
                     </CardDescription>
                 </CardHeader>
@@ -524,7 +524,7 @@ const getTotalPaid = () => {
                         >
                             <div class="flex items-center gap-4">
                                 <div class="text-lg font-semibold text-green-600">
-                                    ${{ formatCurrency(payment.amount) }}
+                                    {{ formatCurrency(payment.amount) }}
                                 </div>
                                 <div class="text-sm text-gray-600">
                                     <div>{{ payment.payment_method.replace(/_/g, ' ').replace(/\b\w/g, (l: string) => l.toUpperCase()) }}</div>
@@ -571,7 +571,7 @@ const getTotalPaid = () => {
                         </div>
                     </div>
                 </CardContent>
-            </Card>
+            </Card> -->
 
             <!-- Payment Schedules -->
             <Card v-if="invoice.payment_schedules && invoice.payment_schedules.length > 0">
@@ -620,7 +620,7 @@ const getTotalPaid = () => {
                                             <div class="flex-1">
                                                 <div class="flex items-center gap-3 mb-2">
                                                     <span class="font-semibold text-lg text-green-600">
-                                                        ${{ formatCurrency(payment.amount) }}
+                                                        {{ formatCurrency(payment.amount) }}
                                                     </span>
                                                     <Badge 
                                                         variant="default" 
@@ -654,7 +654,7 @@ const getTotalPaid = () => {
                                                 </div>
                                             </div>
                                             <div class="flex gap-2">
-                                                <Button 
+                                                <!-- <Button 
                                                     size="sm" 
                                                     variant="outline"
                                                     @click="downloadPaymentPdf(payment)"
@@ -662,7 +662,7 @@ const getTotalPaid = () => {
                                                 >
                                                     <Download class="w-4 h-4 mr-2" />
                                                     Download PDF
-                                                </Button>
+                                                </Button> -->
                                                 <Button 
                                                     size="sm" 
                                                     variant="outline"

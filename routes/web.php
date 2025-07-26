@@ -5,7 +5,7 @@ use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 
 Route::get('/', function () {
-    return Inertia::render('Welcome');
+    return redirect()->route('login');
 })->name('home');
 
 Route::get('dashboard', [DashboardController::class, 'index'])
@@ -33,3 +33,5 @@ Route::middleware(['auth'])->group(function () {
         return $pdf->stream("test-invoice-{$invoice->invoice_number}.pdf");
     })->name('test.pdf');
 });
+
+

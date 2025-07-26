@@ -105,7 +105,12 @@ class PaymentController extends Controller
             $allPaid = $allSchedules->every(function ($s) {
                 return $s->status === 'paid';
             });
-            
+
+            $schedule->paid_amount = $request->amount;
+            $schedule->paid_date = $request->payment_date;
+
+            $schedule->save();
+
             if ($allPaid) {
                 $invoice->update(['status' => 'paid']);
             } elseif ($allSchedules->contains('status', 'partial') || $allSchedules->contains('status', 'paid')) {

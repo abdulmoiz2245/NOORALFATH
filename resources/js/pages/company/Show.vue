@@ -158,6 +158,11 @@ const breadcrumbs: BreadcrumbItem[] = [
                                 <label class="text-sm font-medium text-muted-foreground">SWIFT Code</label>
                                 <p class="font-mono">{{ company.bank_details.swift_code }}</p>
                             </div>
+
+                            <div v-if="company.bank_details.iban_number">
+                                <label class="text-sm font-medium text-muted-foreground">IBAN#</label>
+                                <p class="font-mono">{{ company.bank_details.iban_number }}</p>
+                            </div>
                         </div>
                     </CardContent>
                 </Card>

@@ -5,10 +5,13 @@ import { Head } from '@inertiajs/vue3';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Badge } from '@/components/ui/badge';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSeparator } from '@/components/ui/dropdown-menu';
-import { Plus, Search, Eye, Edit, Download, Send, Copy, Filter, MoreHorizontal, Trash2 } from 'lucide-vue-next';
+import { Plus, Search, Eye, Edit, Download, Send, Copy, Filter, MoreHorizontal, Trash2, X } from 'lucide-vue-next';
 import { Link, router } from '@inertiajs/vue3';
-import { ref, computed } from 'vue';
+import { ref, computed, onMounted, watch } from 'vue';
 import { useToast } from '@/composables/useToast';
 
 interface Invoice {
@@ -26,6 +29,21 @@ interface Invoice {
     total_amount: number;
     items_count: number;
     created_at: string;
+}
+
+interface Client {
+    id: number;
+    name: string;
+}
+
+interface Status {
+    value: string;
+    label: string;
+}
+
+interface FilterData {
+    clients: Client[];
+    statuses: Status[];
 }
 
 interface Props {
@@ -57,7 +75,101 @@ const breadcrumbs: BreadcrumbItem[] = [
 ];
 
 const searchQuery = ref('');
-const statusFilter = ref('all');
+const statusFilter = ref('');
+const clientFilter = ref('');
+const filterDialogOpen = ref(false);
+const filterData = ref<FilterData>({ clients: [], statuses: [] });
+const isLoadingFilters = ref(false);
+
+// Applied filters for display
+const appliedFilters = computed(() => {
+    const filters = [];
+    if (statusFilter.value) {
+        const status = filterData.value.statuses.find(s => s.value === statusFilter.value);
+        if (status) {
+            filters.push({ type: 'status', label: status.label, value: statusFilter.value });
+        }
+    }
+    if (clientFilter.value) {
+        const client = filterData.value.clients.find(c => c.id.toString() === clientFilter.value);
+        if (client) {
+            filters.push({ type: 'client', label: client.name, value: clientFilter.value });
+        }
+    }
+    return filters;
+});
+
+// Fetch filter data from backend
+const fetchFilterData = async () => {
+    if (filterData.value.clients.length > 0) return; // Already loaded
+    
+    isLoadingFilters.value = true;
+    try {
+        const response = await fetch('/api/invoices/filter-data');
+        if (response.ok) {
+            const data = await response.json();
+            filterData.value = data;
+        }
+    } catch (err) {
+        error('Error!', 'Failed to load filter data');
+    } finally {
+        isLoadingFilters.value = false;
+    }
+};
+
+// Apply filters function
+const applyFilters = () => {
+    const params = new URLSearchParams();
+    
+    if (searchQuery.value) params.append('search', searchQuery.value);
+    if (statusFilter.value) params.append('status', statusFilter.value);
+    if (clientFilter.value) params.append('client_id', clientFilter.value);
+    
+    const url = params.toString() ? `/invoices?${params.toString()}` : '/invoices';
+    router.get(url);
+    filterDialogOpen.value = false;
+};
+
+// Clear filters function
+const clearFilters = () => {
+    statusFilter.value = '';
+    clientFilter.value = '';
+    router.get('/invoices');
+};
+
+// Remove individual filter
+const removeFilter = (filterType: string) => {
+    if (filterType === 'status') {
+        statusFilter.value = '';
+    } else if (filterType === 'client') {
+        clientFilter.value = '';
+    }
+    applyFilters();
+};
+
+// Watch for search query changes and apply debounced search
+let searchTimeout: ReturnType<typeof setTimeout>;
+watch(searchQuery, (newValue) => {
+    clearTimeout(searchTimeout);
+    searchTimeout = setTimeout(() => {
+        applyFilters();
+    }, 300);
+});
+
+// Load filter data when dialog opens
+watch(filterDialogOpen, (isOpen) => {
+    if (isOpen) {
+        fetchFilterData();
+    }
+});
+
+// Initialize filters from URL parameters
+onMounted(() => {
+    const urlParams = new URLSearchParams(window.location.search);
+    searchQuery.value = urlParams.get('search') || '';
+    statusFilter.value = urlParams.get('status') || '';
+    clientFilter.value = urlParams.get('client_id') || '';
+});
 
 // Status change function
 const changeInvoiceStatus = (invoiceId: number, newStatus: string) => {
@@ -88,20 +200,8 @@ const deleteInvoice = (invoiceId: number, invoiceNumber: string) => {
 };
 
 const filteredInvoices = computed(() => {
-    let filtered = props.invoices;
-
-    if (statusFilter.value !== 'all') {
-        filtered = filtered.filter(invoice => invoice.status === statusFilter.value);
-    }
-
-    if (searchQuery.value) {
-        filtered = filtered.filter(invoice => 
-            invoice.invoice_number.toLowerCase().includes(searchQuery.value.toLowerCase()) ||
-            invoice.client.toLowerCase().includes(searchQuery.value.toLowerCase())
-        );
-    }
-
-    return filtered;
+    // Since filtering is now done server-side, just return the invoices
+    return props.invoices;
 });
 
 const getStatusColor = (status: string) => {
@@ -122,7 +222,7 @@ const getStatusColor = (status: string) => {
 const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat('en-US', {
         style: 'currency',
-        currency: 'USD'
+        currency: 'AED'
     }).format(amount);
 };
 
@@ -210,15 +310,91 @@ const formatDate = (date: string) => {
                             />
                         </div>
                         <div class="flex items-center space-x-2">
-                            <Filter class="w-4 h-4 text-muted-foreground" />
-                            <select v-model="statusFilter" class="rounded-md border border-input bg-background px-3 py-2 text-sm">
-                                <option value="all">All Status</option>
-                                <option value="draft">Draft</option>
-                                <option value="pending">Pending</option>
-                                <option value="paid">Paid</option>
-                                <option value="overdue">Overdue</option>
-                            </select>
+                            <Dialog v-model:open="filterDialogOpen">
+                                <DialogTrigger asChild>
+                                    <Button variant="outline">
+                                        <Filter class="w-4 h-4 mr-2" />
+                                        Filters
+                                        <Badge v-if="appliedFilters.length > 0" variant="secondary" class="ml-2">
+                                            {{ appliedFilters.length }}
+                                        </Badge>
+                                    </Button>
+                                </DialogTrigger>
+                                <DialogContent class="sm:max-w-md">
+                                    <DialogHeader>
+                                        <DialogTitle>Filter Invoices</DialogTitle>
+                                        <DialogDescription>
+                                            Apply filters to narrow down your invoice list
+                                        </DialogDescription>
+                                    </DialogHeader>
+                                    <div class="space-y-4 py-4">
+                                        <!-- Status Filter -->
+                                        <div class="space-y-2">
+                                            <label class="text-sm font-medium">Status</label>
+                                            <Select v-model="statusFilter">
+                                                <SelectTrigger>
+                                                    <SelectValue placeholder="Select status" />
+                                                </SelectTrigger>
+                                                <SelectContent>
+                                                    <SelectItem value="all">All Statuses</SelectItem>
+                                                    <SelectItem 
+                                                        v-for="status in filterData.statuses" 
+                                                        :key="status.value" 
+                                                        :value="status.value"
+                                                    >
+                                                        {{ status.label }}
+                                                    </SelectItem>
+                                                </SelectContent>
+                                            </Select>
+                                        </div>
+
+                                        <!-- Client Filter -->
+                                        <div class="space-y-2">
+                                            <label class="text-sm font-medium">Client</label>
+                                            <Select v-model="clientFilter">
+                                                <SelectTrigger>
+                                                    <SelectValue placeholder="Select client" />
+                                                </SelectTrigger>
+                                                <SelectContent>
+                                                    <SelectItem value="all">All Clients</SelectItem>
+                                                    <SelectItem 
+                                                        v-for="client in filterData.clients" 
+                                                        :key="client.id" 
+                                                        :value="client.id.toString()"
+                                                    >
+                                                        {{ client.name }}
+                                                    </SelectItem>
+                                                </SelectContent>
+                                            </Select>
+                                        </div>
+                                    </div>
+                                    <div class="flex justify-between">
+                                        <Button variant="outline" @click="clearFilters">
+                                            Clear All
+                                        </Button>
+                                        <Button @click="applyFilters">
+                                            Apply Filters
+                                        </Button>
+                                    </div>
+                                </DialogContent>
+                            </Dialog>
                         </div>
+                    </div>
+
+                    <!-- Applied Filters Display -->
+                    <div v-if="appliedFilters.length > 0" class="flex flex-wrap gap-2 mt-4">
+                        <Badge 
+                            v-for="filter in appliedFilters" 
+                            :key="filter.type" 
+                            variant="secondary" 
+                            class="flex items-center gap-1"
+                        >
+                            {{ filter.label }}
+                            <X 
+                                class="w-3 h-3 cursor-pointer hover:text-destructive" 
+                                @click="removeFilter(filter.type)" 
+                            />
+                        </Badge>
                     </div>
                 </CardHeader>
             </Card>
@@ -282,12 +458,12 @@ const formatDate = (date: string) => {
                                                     <Edit class="w-4 h-4" />
                                                 </Link>
                                             </Button>
-                                            <Button variant="outline" size="sm">
+                                            <!-- <Button variant="outline" size="sm">
                                                 <Download class="w-4 h-4" />
-                                            </Button>
-                                            <Button variant="outline" size="sm" v-if="invoice.status !== 'draft'">
+                                            </Button> -->
+                                            <!-- <Button variant="outline" size="sm" v-if="invoice.status !== 'draft'">
                                                 <Send class="w-4 h-4" />
-                                            </Button>
+                                            </Button> -->
                                             
                                             <!-- Status Change & More Actions Dropdown -->
                                             <DropdownMenu>
@@ -348,9 +524,9 @@ const formatDate = (date: string) => {
                     </div>
                     <h3 class="text-lg font-semibold mb-2">No invoices found</h3>
                     <p class="text-muted-foreground mb-4">
-                        {{ searchQuery || statusFilter !== 'all' ? 'Try adjusting your search criteria' : 'Get started by creating your first invoice' }}
+                        {{ searchQuery || appliedFilters.length > 0 ? 'Try adjusting your search criteria or filters' : 'Get started by creating your first invoice' }}
                     </p>
-                    <Button v-if="!searchQuery && statusFilter === 'all'" as-child>
+                    <Button v-if="!searchQuery && appliedFilters.length === 0" as-child>
                         <Link href="/invoices/create">
                             <Plus class="w-4 h-4 mr-2" />
                             Create Invoice
