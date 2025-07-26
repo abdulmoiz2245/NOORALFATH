@@ -75,6 +75,16 @@ const formatDate = (date: string) => {
     return new Date(date).toLocaleDateString();
 };
 
+// VAT calculations (assuming current price includes 5% VAT)
+const vatRate = 5; // Default 5% VAT
+const basePrice = computed(() => {
+    return (props.product.price * 100) / (100 + vatRate);
+});
+
+const vatAmount = computed(() => {
+    return props.product.price - basePrice.value;
+});
+
 const profitMargin = computed(() => {
     if (props.product.cost && props.product.price > 0) {
         return ((props.product.price - props.product.cost) / props.product.price) * 100;
@@ -139,11 +149,22 @@ const stockBadgeColor = computed(() => {
             <div class="grid gap-4 md:grid-cols-4">
                 <Card>
                     <CardHeader class="flex flex-row items-center justify-between space-y-0 pb-2">
-                        <CardTitle class="text-sm font-medium">Selling Price</CardTitle>
+                        <CardTitle class="text-sm font-medium">Pricing Breakdown</CardTitle>
                         <DollarSign class="h-4 w-4 text-muted-foreground" />
                     </CardHeader>
-                    <CardContent>
-                        <div class="text-2xl font-bold">{{ formatCurrency(product.price) }}</div>
+                    <CardContent class="space-y-3">
+                        <div>
+                            <div class="text-sm text-muted-foreground">Base Price (excl. VAT)</div>
+                            <div class="text-lg font-semibold">{{ formatCurrency(basePrice) }}</div>
+                        </div>
+                        <div>
+                            <div class="text-sm text-muted-foreground">VAT ({{ vatRate }}%)</div>
+                            <div class="text-lg font-semibold">{{ formatCurrency(vatAmount) }}</div>
+                        </div>
+                        <div class="border-t pt-2">
+                            <div class="text-sm text-muted-foreground">Selling Price (incl. VAT)</div>
+                            <div class="text-2xl font-bold">{{ formatCurrency(product.price) }}</div>
+                        </div>
                     </CardContent>
                 </Card>
 

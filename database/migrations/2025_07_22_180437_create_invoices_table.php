@@ -18,7 +18,7 @@ return new class extends Migration
             $table->foreignId('project_id')->nullable()->constrained()->onDelete('set null');
             $table->date('issue_date');
             $table->date('due_date');
-            $table->enum('status', ['draft', 'sent', 'paid', 'partially_paid', 'overdue', 'cancelled'])->default('draft');
+            $table->enum('status', ['draft', 'pending', 'sent', 'paid', 'partially_paid', 'overdue', 'cancelled'])->default('draft');
             $table->decimal('subtotal', 10, 2)->default(0);
             $table->decimal('tax_rate', 5, 2)->default(0);
             $table->decimal('tax_amount', 10, 2)->default(0);

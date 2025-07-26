@@ -12,6 +12,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { ArrowLeft, Save, Trash2 } from 'lucide-vue-next';
 import { Link } from '@inertiajs/vue3';
 import { useToast } from '@/composables/useToast';
+import { computed } from 'vue';
 
 interface Product {
     id: number;
@@ -19,6 +20,8 @@ interface Product {
     description?: string;
     sku: string;
     price: number;
+    base_price?: number; // Will calculate from price if not available
+    vat_rate?: number; // Will default to 5% if not available
     cost?: number;
     category: string;
     stock_quantity: number;
@@ -53,11 +56,20 @@ const breadcrumbs: BreadcrumbItem[] = [
     },
 ];
 
+// Calculate base price from existing price (assuming it includes 5% VAT)
+const calculateBasePrice = (priceWithVat: number, vatRate: number = 5) => {
+    return (priceWithVat * 100) / (100 + vatRate);
+};
+
+const existingBasePrice = props.product.base_price || calculateBasePrice(props.product.price);
+const existingVatRate = props.product.vat_rate || 5;
+
 const form = useForm({
     name: props.product.name,
     description: props.product.description || '',
     sku: props.product.sku,
-    price: props.product.price.toString(),
+    base_price: existingBasePrice.toFixed(2),
+    vat_rate: existingVatRate.toString(),
     cost: props.product.cost?.toString() || '',
     category: props.product.category,
     stock_quantity: props.product.stock_quantity.toString(),
@@ -65,6 +77,25 @@ const form = useForm({
     unit: props.product.unit,
     is_active: props.product.is_active,
 });
+
+// Computed properties for VAT calculations
+const vatAmount = computed(() => {
+    const basePrice = parseFloat(form.base_price) || 0;
+    const vatRate = parseFloat(form.vat_rate) || 0;
+    return (basePrice * vatRate) / 100;
+});
+
+const priceWithVat = computed(() => {
+    const basePrice = parseFloat(form.base_price) || 0;
+    return basePrice + vatAmount.value;
+});
+
+const formatCurrency = (amount: number) => {
+    return new Intl.NumberFormat('en-US', {
+        style: 'currency',
+        currency: 'USD'
+    }).format(amount);
+};
 
 const categories = [
     'Electronics',
@@ -98,7 +129,13 @@ const units = [
 ];
 
 const submit = () => {
-    form.put(`/products/${props.product.id}`, {
+    // Create the data with calculated price including VAT
+    const formData = {
+        ...form.data(),
+        price: priceWithVat.value.toFixed(2), // Send price with VAT to backend
+    };
+    
+    form.transform((data) => formData).put(`/products/${props.product.id}`, {
         onSuccess: () => {
             success('Success!', 'Product updated successfully');
         },
@@ -219,30 +256,65 @@ const deleteProduct = () => {
                         <CardContent class="space-y-4">
                             <div class="grid gap-4 md:grid-cols-2">
                                 <div class="space-y-2">
-                                    <Label for="price">Selling Price *</Label>
+                                    <Label for="base_price">Base Price (excl. VAT) *</Label>
                                     <Input
-                                        id="price"
-                                        v-model="form.price"
+                                        id="base_price"
+                                        v-model="form.base_price"
                                         type="number"
                                         step="0.01"
                                         placeholder="0.00"
-                                        :class="{ 'border-red-500': form.errors.price }"
+                                        :class="{ 'border-red-500': form.errors.base_price }"
                                     />
-                                    <InputError :message="form.errors.price" />
+                                    <InputError :message="form.errors.base_price" />
                                 </div>
 
                                 <div class="space-y-2">
-                                    <Label for="cost">Cost Price</Label>
+                                    <Label for="vat_rate">VAT Rate (%)</Label>
                                     <Input
-                                        id="cost"
-                                        v-model="form.cost"
+                                        id="vat_rate"
+                                        v-model="form.vat_rate"
                                         type="number"
                                         step="0.01"
-                                        placeholder="0.00"
-                                        :class="{ 'border-red-500': form.errors.cost }"
+                                        min="0"
+                                        max="100"
+                                        placeholder="5.00"
+                                        :class="{ 'border-red-500': form.errors.vat_rate }"
                                     />
-                                    <InputError :message="form.errors.cost" />
+                                    <InputError :message="form.errors.vat_rate" />
                                 </div>
+                            </div>
+
+                            <!-- Price Breakdown Display -->
+                            <div class="p-4 bg-gray-50 rounded-lg space-y-2">
+                                <h4 class="font-medium text-sm">Price Breakdown</h4>
+                                <div class="grid gap-2 text-sm">
+                                    <div class="flex justify-between">
+                                        <span>Base Price:</span>
+                                        <span>{{ formatCurrency(parseFloat(form.base_price) || 0) }}</span>
+                                    </div>
+                                    <div class="flex justify-between">
+                                        <span>VAT ({{ form.vat_rate }}%):</span>
+                                        <span>{{ formatCurrency(vatAmount) }}</span>
+                                    </div>
+                                    <div class="flex justify-between border-t pt-2 font-medium">
+                                        <span>Selling Price (incl. VAT):</span>
+                                        <span>{{ formatCurrency(priceWithVat) }}</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="space-y-2">
+                                <Label for="cost">Cost Price</Label>
+                                <Input
+                                    id="cost"
+                                    v-model="form.cost"
+                                    type="number"
+                                    step="0.01"
+                                    placeholder="0.00"
+                                    :class="{ 'border-red-500': form.errors.cost }"
+                                />
+                                <InputError :message="form.errors.cost" />
+                                <p class="text-xs text-gray-500">Cost price for margin calculation</p>
                             </div>
 
                             <div class="grid gap-4 md:grid-cols-2">

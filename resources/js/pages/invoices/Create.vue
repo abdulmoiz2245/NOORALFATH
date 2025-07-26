@@ -40,11 +40,22 @@ interface Product {
 }
 
 interface InvoiceItem {
-    product_id?: string;
+    product_id: string | null;
     description: string;
-    quantity: number;
+    quantity: number | string;
     unit_price: string;
-    amount: number;
+    vat_rate: string;
+    total_price: number | string;
+    amount: number | string;
+    tax?: number; // Optional tax field for total amount calculation
+}
+
+interface InvoicePaymentSchedule {
+    id?: number;
+    description: string;
+    percentage?: string;
+    amount: string;
+    due_date: string;
 }
 
 interface Props {
@@ -72,6 +83,23 @@ const breadcrumbs: BreadcrumbItem[] = [
     },
 ];
 
+interface InvoiceForm {
+    [key: string]: any;
+    client_id: string;
+    project_id: string | null;
+    issue_date: string;
+    due_date: string;
+    payment_terms: string;
+    status: string;
+    notes: string;
+    terms: string;
+    tax_rate: string;
+    discount_amount: string;
+    invoice_number: string;
+    items: InvoiceItem[];
+    payment_schedules: InvoicePaymentSchedule[];
+}
+
 const form = useForm({
     client_id: '',
     project_id: 'no_project',
@@ -90,9 +118,20 @@ const form = useForm({
             description: '',
             quantity: 1,
             unit_price: '0',
-            amount: 0,
+            vat_rate: '5',      // Default 5% VAT
+            total_price: 0,
+            amount: 0,          // Total amount without VAT
+            tax: 0, // Total tax amount
         }
-    ] as InvoiceItem[],
+    ],
+    payment_schedules: [
+        {
+            description: 'Full Payment',
+            percentage: '100',
+            amount: '0',
+            due_date: '',
+        }
+    ],
 });
 
 // Set default due date (30 days from issue date)
@@ -137,8 +176,11 @@ const addItem = () => {
         product_id: 'custom',
         description: '',
         quantity: 1,
-        unit_price: '0',
-        amount: 0,
+        unit_price: '0',    // Unit price including VAT
+        vat_rate: '5',      // Default 5% VAT
+        total_price: 0,          // Total amount including VAT
+        amount: 0,          // Total amount without VAT
+        tax: 0, // Total tax amount
     });
 };
 
@@ -152,7 +194,15 @@ const updateItemAmount = (index: number) => {
     const item = form.items[index];
     const quantity = parseFloat(item.quantity.toString()) || 0;
     const unitPrice = parseFloat(item.unit_price.toString()) || 0;
+    const vatRate = parseFloat(item.vat_rate.toString()) || 0;
+
+
     item.amount = quantity * unitPrice;
+
+    item.tax = item.amount * (vatRate / 100);
+
+    // Calculate total price including VAT
+    item.total_price = quantity * unitPrice * (1 + vatRate / 100);
 };
 
 const updateItemFromProduct = (index: number, productId: string) => {
@@ -170,12 +220,11 @@ const updateItemFromProduct = (index: number, productId: string) => {
 };
 
 const subtotal = computed(() => {
-    return form.items.reduce((sum, item) => sum + (item.amount || 0), 0);
+    return form.items.reduce((sum, item) => sum + (parseFloat(item.amount as string) || 0), 0);
 });
 
 const taxAmount = computed(() => {
-    const rate = parseFloat(form.tax_rate) || 0;
-    return (subtotal.value * rate) / 100;
+    return form.items.reduce((sum, item) => sum + (item.tax || 0), 0);
 });
 
 const discountAmount = computed(() => {
@@ -186,11 +235,46 @@ const totalAmount = computed(() => {
     return subtotal.value + taxAmount.value - discountAmount.value;
 });
 
+
+
 const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat('en-US', {
         style: 'currency',
         currency: 'USD'
     }).format(amount);
+};
+
+// Payment schedule functions
+const addPaymentSchedule = () => {
+    form.payment_schedules.push({
+        id: undefined,
+        description: `Payment ${form.payment_schedules.length + 1}`,
+        percentage: '',
+        amount: '0',
+        due_date: form.due_date,
+    });
+};
+
+const removePaymentSchedule = (index: number) => {
+    if (form.payment_schedules.length > 1) {
+        form.payment_schedules.splice(index, 1);
+    }
+};
+
+const updatePaymentAmount = (index: number) => {
+    const schedule = form.payment_schedules[index];
+    const percentage = parseFloat(schedule.percentage || '0');
+    if (percentage > 0) {
+        schedule.amount = ((totalAmount.value * percentage) / 100).toString();
+    }
+};
+
+const updatePaymentPercentage = (index: number) => {
+    const schedule = form.payment_schedules[index];
+    const amount = parseFloat(schedule.amount || '0');
+    if (amount > 0 && totalAmount.value > 0) {
+        schedule.percentage = ((amount / totalAmount.value) * 100).toFixed(2);
+    }
 };
 
 const submit = () => {
@@ -284,7 +368,7 @@ const submit = () => {
                             </div>
                         </div>
 
-                        <div class="grid gap-4 md:grid-cols-3">
+                        <div class="grid gap-4 md:grid-cols-4">
                             <div class="space-y-2">
                                 <Label for="issue_date">Issue Date *</Label>
                                 <Input
@@ -322,6 +406,22 @@ const submit = () => {
                                 />
                                 <InputError :message="form.errors.due_date" />
                             </div>
+
+                            <div class="space-y-2">
+                                <Label for="status">Status *</Label>
+                                <Select v-model="form.status">
+                                    <SelectTrigger :class="{ 'border-red-500': form.errors.status }">
+                                        <SelectValue />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        <SelectItem value="draft">Draft</SelectItem>
+                                        <SelectItem value="pending">Pending</SelectItem>
+                                        <SelectItem value="paid">Paid</SelectItem>
+                                        <SelectItem value="overdue">Overdue</SelectItem>
+                                    </SelectContent>
+                                </Select>
+                                <InputError :message="form.errors.status" />
+                            </div>
                         </div>
 
                         <div class="space-y-2">
@@ -350,8 +450,10 @@ const submit = () => {
                             </Button>
                         </div>
                     </CardHeader>
+
                     <CardContent>
                         <div class="space-y-4">
+                            <!-- Item loop -->
                             <div v-for="(item, index) in form.items" :key="index" class="p-4 border rounded-lg space-y-4">
                                 <div class="flex justify-between items-start">
                                     <h4 class="font-medium">Item {{ index + 1 }}</h4>
@@ -398,24 +500,24 @@ const submit = () => {
                                     </div>
                                 </div>
 
-                                <div class="grid gap-4 md:grid-cols-4">
+                                <div class="grid gap-4 md:grid-cols-5">
                                     <div class="space-y-2">
                                         <Label>Quantity *</Label>
                                         <Input
                                             v-model="item.quantity"
                                             type="number"
-                                            step="0.01"
-                                            min="0"
+                                            step="1"
+                                            min="1"
                                             @input="updateItemAmount(index)"
                                             :class="{ 'border-red-500': form.errors[`items.${index}.quantity`] }"
                                         />
-                                        <p v-if="form.errors[`items.${index}.quantity`]" class="text-sm text-red-500">
-                                            {{ form.errors[`items.${index}.quantity`] }}
+                                        <p v-if="(form.errors as any)[`items.${index}.quantity`]" class="text-sm text-red-500">
+                                            {{ (form.errors as any)[`items.${index}.quantity`] }}
                                         </p>
                                     </div>
 
                                     <div class="space-y-2">
-                                        <Label>Unit Price *</Label>
+                                        <Label>Unit Price (incl. VAT) *</Label>
                                         <Input
                                             v-model="item.unit_price"
                                             type="number"
@@ -430,29 +532,50 @@ const submit = () => {
                                     </div>
 
                                     <div class="space-y-2">
-                                        <Label>Amount</Label>
-                                        <div class="px-3 py-2 bg-muted rounded-md text-sm font-medium">
-                                            {{ formatCurrency(item.amount) }}
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <!-- Totals -->
-                            <div class="border-t pt-4 space-y-4">
-                                <div class="grid gap-4 md:grid-cols-3">
-                                    <div class="space-y-2">
-                                        <Label for="tax_rate">Tax Rate (%)</Label>
+                                        <Label>VAT Rate (%) *</Label>
                                         <Input
-                                            id="tax_rate"
-                                            v-model="form.tax_rate"
+                                            v-model="item.vat_rate"
                                             type="number"
                                             step="0.01"
                                             min="0"
                                             max="100"
+                                            @input="updateItemAmount(index)"
+                                            :class="{ 'border-red-500': form.errors[`items.${index}.vat_rate`] }"
                                         />
+                                        <p v-if="form.errors[`items.${index}.vat_rate`]" class="text-sm text-red-500">
+                                            {{ form.errors[`items.${index}.vat_rate`] }}
+                                        </p>
                                     </div>
 
+                                    <div class="space-y-2 col-span-2 md:col-span-1">
+                                        <Label>Total Amount (incl. VAT)</Label>
+                                    
+                                        <Input
+                                            v-model="item.total_price"
+                                            type="number"
+                                            step="0.01"
+                                            min="0"
+                                            readonly
+                                            @input="updateItemAmount(index)"
+                                            :class="{ 'border-red-500': form.errors[`items.${index}.total_price`] }"
+                                        />
+                                        <p class="text-xs text-gray-500">
+                                            VAT ({{ item.vat_rate }}%): {{
+                                                formatCurrency(
+                                                    (
+                                                        (parseFloat(item.unit_price?.toString() || '0') * parseFloat(item.quantity?.toString() || '0')) *
+                                                        parseFloat(item.vat_rate?.toString() || '0')
+                                                    ) / (100 + parseFloat(item.vat_rate?.toString() || '0'))
+                                                )
+                                            }}
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Totals Section -->
+                            <div class="border-t pt-4 space-y-4">
+                                <div class="grid gap-4 md:grid-cols-2">
                                     <div class="space-y-2">
                                         <Label for="discount_amount">Discount Amount</Label>
                                         <Input
@@ -465,20 +588,97 @@ const submit = () => {
                                     </div>
                                 </div>
 
-                                <div class="flex justify-end">
-                                    <div class="text-right space-y-2">
-                                        <div class="text-sm text-muted-foreground">
-                                            Subtotal: {{ formatCurrency(subtotal) }}
-                                        </div>
-                                        <div v-if="taxAmount > 0" class="text-sm text-muted-foreground">
-                                            Tax ({{ form.tax_rate }}%): {{ formatCurrency(taxAmount) }}
-                                        </div>
-                                        <div v-if="discountAmount > 0" class="text-sm text-muted-foreground">
-                                            Discount: -{{ formatCurrency(discountAmount) }}
-                                        </div>
-                                        <div class="text-lg font-semibold">
-                                            Total: {{ formatCurrency(totalAmount) }}
-                                        </div>
+                                <div class="space-y-2 text-right">
+                                    <div class="text-sm text-muted-foreground">
+                                        Subtotal: {{ formatCurrency(subtotal) }}
+                                    </div>
+                                    <div class="text-sm text-muted-foreground">
+                                        Total VAT: {{ formatCurrency(taxAmount) }}
+                                    </div>
+                                    <div v-if="discountAmount > 0" class="text-sm text-muted-foreground">
+                                        Discount: -{{ formatCurrency(discountAmount) }}
+                                    </div>
+                                    <div class="text-lg font-semibold">
+                                        Total: {{ formatCurrency(totalAmount) }}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </CardContent>
+                </Card>
+
+                <!-- Payment Schedules -->
+                <Card>
+                    <CardHeader>
+                        <div class="flex justify-between items-center">
+                            <div>
+                                <CardTitle>Payment Configuration</CardTitle>
+                                <CardDescription>Configure how the client will pay this invoice</CardDescription>
+                            </div>
+                            <Button type="button" @click="addPaymentSchedule" variant="outline" size="sm">
+                                <Plus class="w-4 h-4 mr-2" />
+                                Add Payment
+                            </Button>
+                        </div>
+                    </CardHeader>
+                    <CardContent>
+                        <div class="space-y-4">
+                            <div v-for="(schedule, index) in form.payment_schedules" :key="index" class="p-4 border rounded-lg space-y-4">
+                                <div class="flex justify-between items-start">
+                                    <h4 class="font-medium">Payment {{ index + 1 }}</h4>
+                                    <Button
+                                        v-if="form.payment_schedules.length > 1"
+                                        type="button"
+                                        @click="removePaymentSchedule(index)"
+                                        variant="ghost"
+                                        size="sm"
+                                    >
+                                        <Trash2 class="w-4 h-4" />
+                                    </Button>
+                                </div>
+
+                                <div class="grid gap-4 md:grid-cols-2">
+                                    <div class="space-y-2">
+                                        <Label>Description *</Label>
+                                        <Input
+                                            v-model="schedule.description"
+                                            placeholder="e.g., First Payment (30%)"
+                                        />
+                                    </div>
+                                    
+                                    <div class="space-y-2">
+                                        <Label>Due Date *</Label>
+                                        <Input
+                                            v-model="schedule.due_date"
+                                            type="date"
+                                        />
+                                    </div>
+                                </div>
+
+                                <div class="grid gap-4 md:grid-cols-2">
+                                    <div class="space-y-2">
+                                        <Label>Percentage (%)</Label>
+                                        <Input
+                                            v-model="schedule.percentage"
+                                            type="number"
+                                            step="0.01"
+                                            min="0"
+                                            max="100"
+                                            placeholder="e.g., 30"
+                                            @input="updatePaymentAmount(index)"
+                                        />
+                                    </div>
+                                    
+                                    <div class="space-y-2">
+                                        <Label>Fixed Amount</Label>
+                                        <Input
+                                            v-model="schedule.amount"
+                                            type="number"
+                                            step="0.01"
+                                            min="0"
+                                            placeholder="Enter fixed amount"
+                                            @input="updatePaymentPercentage(index)"
+                                        />
                                     </div>
                                 </div>
                             </div>

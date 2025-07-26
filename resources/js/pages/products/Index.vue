@@ -172,6 +172,7 @@ const formatCurrency = (amount: number) => {
                                     <td class="p-4">
                                         <div>
                                             <p class="font-medium">{{ formatCurrency(product.price) }}</p>
+                                            <p class="text-xs text-muted-foreground">Price (incl. VAT)</p>
                                             <p v-if="product.cost" class="text-sm text-muted-foreground">
                                                 Cost: {{ formatCurrency(product.cost) }}
                                             </p>

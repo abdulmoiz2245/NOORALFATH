@@ -5,9 +5,11 @@ import { Head } from '@inertiajs/vue3';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Plus, Search, Eye, Edit, Download, Send, Copy, Filter } from 'lucide-vue-next';
-import { Link } from '@inertiajs/vue3';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSeparator } from '@/components/ui/dropdown-menu';
+import { Plus, Search, Eye, Edit, Download, Send, Copy, Filter, MoreHorizontal, Trash2 } from 'lucide-vue-next';
+import { Link, router } from '@inertiajs/vue3';
 import { ref, computed } from 'vue';
+import { useToast } from '@/composables/useToast';
 
 interface Invoice {
     id: number;
@@ -28,9 +30,20 @@ interface Invoice {
 
 interface Props {
     invoices: Invoice[];
+    stats: {
+        total: number;
+        pending: number;
+        overdue: number;
+        paid: number;
+        paid_amount: number;
+        pending_amount: number;
+        overdue_amount: number;
+        draft: number;
+    };
 }
 
 const props = defineProps<Props>();
+const { success, error } = useToast();
 
 const breadcrumbs: BreadcrumbItem[] = [
     {
@@ -45,6 +58,34 @@ const breadcrumbs: BreadcrumbItem[] = [
 
 const searchQuery = ref('');
 const statusFilter = ref('all');
+
+// Status change function
+const changeInvoiceStatus = (invoiceId: number, newStatus: string) => {
+    router.patch(`/invoices/${invoiceId}/status`, {
+        status: newStatus
+    }, {
+        onSuccess: () => {
+            success('Success!', `Invoice status changed to ${newStatus}`);
+        },
+        onError: () => {
+            error('Error!', 'Failed to change invoice status');
+        }
+    });
+};
+
+// Delete function
+const deleteInvoice = (invoiceId: number, invoiceNumber: string) => {
+    if (confirm(`Are you sure you want to delete invoice ${invoiceNumber}? This action cannot be undone.`)) {
+        router.delete(`/invoices/${invoiceId}`, {
+            onSuccess: () => {
+                success('Success!', 'Invoice deleted successfully');
+            },
+            onError: () => {
+                error('Error!', 'Failed to delete invoice');
+            }
+        });
+    }
+};
 
 const filteredInvoices = computed(() => {
     let filtered = props.invoices;
@@ -88,13 +129,6 @@ const formatCurrency = (amount: number) => {
 const formatDate = (date: string) => {
     return new Date(date).toLocaleDateString();
 };
-
-const stats = computed(() => ({
-    total: props.invoices.reduce((sum: number, inv: Invoice) => sum + inv.total_amount, 0),
-    pending: props.invoices.filter((inv: Invoice) => inv.status === 'pending').length,
-    overdue: props.invoices.filter((inv: Invoice) => inv.status === 'overdue').length,
-    paid: props.invoices.filter((inv: Invoice) => inv.status === 'paid').length,
-}));
 </script>
 
 <template>
@@ -123,7 +157,7 @@ const stats = computed(() => ({
                         <div class="flex items-center">
                             <div>
                                 <p class="text-sm font-medium text-muted-foreground">Total Value</p>
-                                <p class="text-2xl font-bold">{{ formatCurrency(stats.total) }}</p>
+                                <p class="text-2xl font-bold">{{ formatCurrency(props.stats.total) }}</p>
                             </div>
                         </div>
                     </CardContent>
@@ -134,7 +168,7 @@ const stats = computed(() => ({
                         <div class="flex items-center">
                             <div>
                                 <p class="text-sm font-medium text-muted-foreground">Amount Paid</p>
-                                <p class="text-2xl font-bold text-green-600">${{ stats.paid }}</p>
+                                <p class="text-2xl font-bold text-green-600">{{ formatCurrency(props.stats.paid_amount) }}</p>
                             </div>
                         </div>
                     </CardContent>
@@ -145,7 +179,7 @@ const stats = computed(() => ({
                         <div class="flex items-center">
                             <div>
                                 <p class="text-sm font-medium text-muted-foreground">Pending</p>
-                                <p class="text-2xl font-bold text-yellow-600">{{ stats.pending }}</p>
+                                <p class="text-2xl font-bold text-yellow-600">{{ props.stats.pending }}</p>
                             </div>
                         </div>
                     </CardContent>
@@ -156,7 +190,7 @@ const stats = computed(() => ({
                         <div class="flex items-center">
                             <div>
                                 <p class="text-sm font-medium text-muted-foreground">Overdue</p>
-                                <p class="text-2xl font-bold text-red-600">{{ stats.overdue }}</p>
+                                <p class="text-2xl font-bold text-red-600">{{ props.stats.overdue }}</p>
                             </div>
                         </div>
                     </CardContent>
@@ -254,6 +288,49 @@ const stats = computed(() => ({
                                             <Button variant="outline" size="sm" v-if="invoice.status !== 'draft'">
                                                 <Send class="w-4 h-4" />
                                             </Button>
+                                            
+                                            <!-- Status Change & More Actions Dropdown -->
+                                            <DropdownMenu>
+                                                <DropdownMenuTrigger asChild>
+                                                    <Button variant="outline" size="sm">
+                                                        <MoreHorizontal class="w-4 h-4" />
+                                                    </Button>
+                                                </DropdownMenuTrigger>
+                                                <DropdownMenuContent align="end">
+                                                    <DropdownMenuItem 
+                                                        v-if="invoice.status !== 'draft'"
+                                                        @click="changeInvoiceStatus(invoice.id, 'draft')"
+                                                    >
+                                                        Mark as Draft
+                                                    </DropdownMenuItem>
+                                                    <DropdownMenuItem 
+                                                        v-if="invoice.status !== 'pending'"
+                                                        @click="changeInvoiceStatus(invoice.id, 'pending')"
+                                                    >
+                                                        Mark as Pending
+                                                    </DropdownMenuItem>
+                                                    <DropdownMenuItem 
+                                                        v-if="invoice.status !== 'paid'"
+                                                        @click="changeInvoiceStatus(invoice.id, 'paid')"
+                                                    >
+                                                        Mark as Paid
+                                                    </DropdownMenuItem>
+                                                    <DropdownMenuItem 
+                                                        v-if="invoice.status !== 'overdue'"
+                                                        @click="changeInvoiceStatus(invoice.id, 'overdue')"
+                                                    >
+                                                        Mark as Overdue
+                                                    </DropdownMenuItem>
+                                                    <DropdownMenuSeparator />
+                                                    <DropdownMenuItem 
+                                                        @click="deleteInvoice(invoice.id, invoice.invoice_number)"
+                                                        class="text-red-600 focus:text-red-600"
+                                                    >
+                                                        <Trash2 class="w-4 h-4 mr-2" />
+                                                        Delete Invoice
+                                                    </DropdownMenuItem>
+                                                </DropdownMenuContent>
+                                            </DropdownMenu>
                                         </div>
                                     </td>
                                 </tr>

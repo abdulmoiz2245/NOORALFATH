@@ -6,9 +6,12 @@ use App\Models\Invoice;
 use App\Models\Client;
 use App\Models\Project;
 use App\Models\Product;
+use App\Models\Payment;
+use App\Models\InvoicePaymentSchedule;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Inertia\Response;
+use Barryvdh\DomPDF\Facade\Pdf;
 
 class InvoiceController extends Controller
 {
@@ -40,8 +43,21 @@ class InvoiceController extends Controller
                 ];
             });
 
+        // Calculate stats from database
+        $stats = [
+            'total' => Invoice::sum('total_amount'),
+            'pending' => Invoice::where('status', 'pending')->count(),
+            'overdue' => Invoice::where('status', 'overdue')->count(),
+            'paid' => Invoice::where('status', 'paid')->count(),
+            'paid_amount' => Invoice::where('status', 'paid')->sum('total_amount'),
+            'pending_amount' => Invoice::where('status', 'pending')->sum('total_amount'),
+            'overdue_amount' => Invoice::where('status', 'overdue')->sum('total_amount'),
+            'draft' => Invoice::where('status', 'draft')->count(),
+        ];
+
         return Inertia::render('invoices/Index', [
-            'invoices' => $invoices
+            'invoices' => $invoices,
+            'stats' => $stats
         ]);
     }
 
@@ -75,18 +91,43 @@ class InvoiceController extends Controller
             'status' => 'required|in:draft,pending,paid,overdue,cancelled',
             'notes' => 'nullable|string',
             'terms' => 'nullable|string',
+            'discount_amount' => 'nullable|numeric|min:0',
             'tax_rate' => 'nullable|numeric|min:0|max:100',
             'items' => 'required|array|min:1',
             'items.*.product_id' => 'nullable|exists:products,id',
             'items.*.description' => 'required|string',
             'items.*.quantity' => 'required|numeric|min:0.01',
             'items.*.unit_price' => 'required|numeric|min:0',
+            'items.*.vat_rate' => 'required|numeric|min:0|max:100',
+            'items.*.total_price' => 'required|numeric|min:0',
+            'items.*.amount' => 'required|numeric|min:0',
+            'payment_schedules' => 'nullable|array|min:1',
+            'payment_schedules.*.description' => 'required_with:payment_schedules|string',
+            'payment_schedules.*.percentage' => 'nullable|numeric|min:0|max:100',
+            'payment_schedules.*.amount' => 'nullable|numeric|min:0',
+            'payment_schedules.*.due_date' => 'required_with:payment_schedules|date',
         ]);
+
+        $totalAmountWithoutTax = 0;
+        $totalAmountWithTax = 0;
+        $totalTaxAmount = 0;
+
+       
+        
 
         $subtotal = 0;
         foreach ($validated['items'] as $item) {
-            $subtotal += $item['quantity'] * $item['unit_price'];
+            $itemSubtotal = $item['quantity'] * $item['unit_price'];
+            $itemVat = $itemSubtotal * ($item['vat_rate'] / 100);
+            $subtotal += $itemSubtotal + $itemVat;
+
+            $totalAmountWithoutTax += $itemSubtotal;
+            $totalAmountWithTax += $itemSubtotal + $itemVat;
+            $totalTaxAmount += $itemVat;
+            
         }
+
+       
 
         $taxRate = $validated['tax_rate'] ?? 0;
         $taxAmount = $subtotal * ($taxRate / 100);
@@ -100,11 +141,11 @@ class InvoiceController extends Controller
             'due_date' => $validated['due_date'],
             'status' => $validated['status'],
             'notes' => $validated['notes'],
-            'terms' => $validated['terms'],
             'tax_rate' => $taxRate,
-            'subtotal' => $subtotal,
-            'tax_amount' => $taxAmount,
-            'total_amount' => $totalAmount,
+            'subtotal' => $totalAmountWithoutTax,
+            'tax_amount' => $totalTaxAmount,
+            'total_amount' => $totalAmountWithTax,
+            'discount_amount' => $validated['discount_amount'] ?? 0,
         ]);
 
         // Create invoice items
@@ -114,7 +155,35 @@ class InvoiceController extends Controller
                 'description' => $item['description'],
                 'quantity' => $item['quantity'],
                 'unit_price' => $item['unit_price'],
-                'total_price' => $item['quantity'] * $item['unit_price'],
+                'vat_rate' => $item['vat_rate'],
+                'total_price' => $item['amount'],
+                'total_price_w_tax' => $item['total_price'],
+            ]);
+        }
+
+        // Create payment schedules if provided
+        if (isset($validated['payment_schedules']) && !empty($validated['payment_schedules'])) {
+            foreach ($validated['payment_schedules'] as $index => $schedule) {
+                $amount = $schedule['amount'] ?? ($totalAmount * ($schedule['percentage'] / 100));
+                
+                $invoice->paymentSchedules()->create([
+                    'payment_number' => $index + 1,
+                    'description' => $schedule['description'],
+                    'percentage' => $schedule['percentage'] ?? null,
+                    'amount' => $amount,
+                    'due_date' => $schedule['due_date'],
+                    'status' => 'pending',
+                ]);
+            }
+        } else {
+            // Create default single payment schedule
+            $invoice->paymentSchedules()->create([
+                'payment_number' => 1,
+                'description' => 'Full Payment',
+                'percentage' => 100,
+                'amount' => $totalAmount,
+                'due_date' => $validated['due_date'],
+                'status' => 'pending',
             ]);
         }
 
@@ -127,7 +196,7 @@ class InvoiceController extends Controller
      */
     public function show(Invoice $invoice): Response
     {
-        $invoice->load(['client', 'project', 'items.product']);
+        $invoice->load(['client', 'project', 'items.product', 'paymentSchedules.payments']);
         
         return Inertia::render('invoices/Show', [
             'invoice' => $invoice
@@ -143,7 +212,7 @@ class InvoiceController extends Controller
         $projects = Project::with('client')->select('id', 'name', 'client_id')->get();
         $products = Product::select('id', 'name', 'price')->get();
         
-        $invoice->load(['items']);
+        $invoice->load(['items', 'paymentSchedules']);
         
         return Inertia::render('invoices/Edit', [
             'invoice' => $invoice,
@@ -168,15 +237,31 @@ class InvoiceController extends Controller
             'terms' => 'nullable|string',
             'tax_rate' => 'nullable|numeric|min:0|max:100',
             'items' => 'required|array|min:1',
+            'discount_amount' => 'nullable|numeric|min:0',
             'items.*.product_id' => 'nullable|exists:products,id',
             'items.*.description' => 'required|string',
             'items.*.quantity' => 'required|numeric|min:0.01',
             'items.*.unit_price' => 'required|numeric|min:0',
+            'items.*.vat_rate' => 'required|numeric|min:0|max:100',
+            'payment_schedules' => 'nullable|array|min:1',
+            'payment_schedules.*.description' => 'required_with:payment_schedules|string',
+            'payment_schedules.*.percentage' => 'nullable|numeric|min:0|max:100',
+            'payment_schedules.*.amount' => 'nullable|numeric|min:0',
+            'payment_schedules.*.due_date' => 'required_with:payment_schedules|date',
         ]);
 
         $subtotal = 0;
+        $totalAmountWithoutTax = 0;
+        $totalAmountWithTax = 0;
+        $totalTaxAmount = 0;
         foreach ($validated['items'] as $item) {
-            $subtotal += $item['quantity'] * $item['unit_price'];
+            $itemSubtotal = $item['quantity'] * $item['unit_price'];
+            $itemVat = $itemSubtotal * ($item['vat_rate'] / 100);
+            $subtotal += $itemSubtotal + $itemVat;
+
+            $totalAmountWithoutTax += $itemSubtotal;
+            $totalAmountWithTax += $itemSubtotal + $itemVat;
+            $totalTaxAmount += $itemVat;
         }
 
         $taxRate = $validated['tax_rate'] ?? 0;
@@ -190,22 +275,59 @@ class InvoiceController extends Controller
             'due_date' => $validated['due_date'],
             'status' => $validated['status'],
             'notes' => $validated['notes'],
-            'terms' => $validated['terms'],
             'tax_rate' => $taxRate,
-            'subtotal' => $subtotal,
-            'tax_amount' => $taxAmount,
-            'total_amount' => $totalAmount,
+            'discount_amount' => $validated['discount_amount'] ?? 0,
+            'subtotal' => $totalAmountWithoutTax,
+            'tax_amount' => $totalTaxAmount,
+            'total_amount' => $totalAmountWithTax,
         ]);
 
         // Delete existing items and create new ones
         $invoice->items()->delete();
+        $totalAmountWithoutTax = 0;
+        $totalAmountWithTax = 0;
+        $totalTaxAmount = 0;
+
         foreach ($validated['items'] as $item) {
+            $itemSubtotal = $item['quantity'] * $item['unit_price'];
+            $itemVat = $itemSubtotal * ($item['vat_rate'] / 100);
+            $totalPrice = $itemSubtotal + $itemVat;
+            
             $invoice->items()->create([
                 'product_id' => $item['product_id'],
                 'description' => $item['description'],
                 'quantity' => $item['quantity'],
                 'unit_price' => $item['unit_price'],
-                'total_price' => $item['quantity'] * $item['unit_price'],
+                'vat_rate' => $item['vat_rate'],
+                'total_price' => $totalPrice,
+            ]);
+            
+        }
+
+        // Update payment schedules
+        $invoice->paymentSchedules()->delete();
+        if (isset($validated['payment_schedules']) && !empty($validated['payment_schedules'])) {
+            foreach ($validated['payment_schedules'] as $index => $schedule) {
+                $amount = $schedule['amount'] ?? ($totalAmount * ($schedule['percentage'] / 100));
+                
+                $invoice->paymentSchedules()->create([
+                    'payment_number' => $index + 1,
+                    'description' => $schedule['description'],
+                    'percentage' => $schedule['percentage'] ?? null,
+                    'amount' => $amount,
+                    'due_date' => $schedule['due_date'],
+                    'status' => 'pending',
+                ]);
+            }
+        } else {
+            // Create default single payment schedule
+            $invoice->paymentSchedules()->create([
+                'payment_number' => 1,
+                'description' => 'Full Payment',
+                'percentage' => 100,
+                'amount' => $totalAmount,
+                'due_date' => $validated['due_date'],
+                'status' => 'pending',
             ]);
         }
 
@@ -274,11 +396,21 @@ class InvoiceController extends Controller
     /**
      * Generate PDF for invoice
      */
-    public function generatePdf(Invoice $invoice)
+    public function generatePdf(Invoice $invoice, Request $request)
     {
-        // TODO: Implement PDF generation
+        $paymentScheduleId = $request->query('payment_schedule_id');
+        $invoice->load(['client', 'items.product', 'paymentSchedules']);
+        
+        if ($paymentScheduleId) {
+            $paymentSchedule = $invoice->paymentSchedules()->findOrFail($paymentScheduleId);
+            // TODO: Implement payment-specific PDF generation
+            return redirect()->route('invoices.show', $invoice)
+                ->with('message', 'Payment-specific PDF generated successfully.');
+        }
+        
+        // TODO: Implement full invoice PDF generation
         return redirect()->route('invoices.show', $invoice)
-            ->with('message', 'PDF generated successfully.');
+            ->with('message', 'Full invoice PDF generated successfully.');
     }
 
     /**
@@ -319,5 +451,74 @@ class InvoiceController extends Controller
             return redirect()->back()
                 ->withErrors(['email' => 'Failed to send email: ' . $e->getMessage()]);
         }
+    }
+
+    /**
+     * Update the status of the invoice.
+     */
+    public function updateStatus(Request $request, Invoice $invoice)
+    {
+        $validated = $request->validate([
+            'status' => 'required|in:draft,pending,paid,overdue,cancelled'
+        ]);
+
+        $invoice->update([
+            'status' => $validated['status']
+        ]);
+
+        return redirect()->back()->with('message', 'Invoice status updated successfully');
+    }
+
+    /**
+     * Download PDF for a specific payment (Payment Receipt)
+     */
+    public function downloadPaymentPdf(Invoice $invoice, Payment $payment)
+    {
+        // Load relationships
+        $invoice->load(['client', 'project', 'items.product', 'paymentSchedules.payments']);
+        
+        // Verify the payment belongs to this invoice
+        $belongsToInvoice = $invoice->paymentSchedules()->whereHas('payments', function($query) use ($payment) {
+            $query->where('id', $payment->id);
+        })->exists();
+        
+        if (!$belongsToInvoice) {
+            abort(404, 'Payment not found for this invoice');
+        }
+        
+        // Generate PDF using your template
+        $pdf = Pdf::loadView('pdf.sheduled_invoice', [
+            'invoice' => $invoice,
+            'payment' => $payment,
+            'type' => 'payment_receipt'
+        ]);
+        
+        $filename = "invoice-{$invoice->invoice_number}-payment-{$payment->id}.pdf";
+        
+        return $pdf->download($filename);
+    }
+
+    /**
+     * Download PDF for a payment schedule (Invoice for unpaid amount)
+     */
+    public function downloadSchedulePdf(Invoice $invoice, InvoicePaymentSchedule $schedule)
+    {
+        // Load relationships
+        $invoice->load(['client', 'project', 'items.product', 'paymentSchedules.payments']);
+        
+        // Verify the schedule belongs to this invoice
+        if ($schedule->invoice_id !== $invoice->id) {
+            abort(404, 'Payment schedule not found for this invoice');
+        }
+        // Generate PDF using your template
+        $pdf = Pdf::loadView('pdf.sheduled_invoice', [
+            'invoice' => $invoice,
+            'schedule' => $schedule,
+            'type' => 'invoice'
+        ]);
+        
+        $filename = "invoice-{$invoice->invoice_number}-schedule-{$schedule->id}.pdf";
+        
+        return $pdf->download($filename);
     }
 }

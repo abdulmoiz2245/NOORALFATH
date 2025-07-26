@@ -20,4 +20,16 @@ require __DIR__.'/app.php';
 Route::middleware(['auth'])->group(function () {
     Route::post('/quotations/{quotation}/email', [App\Http\Controllers\QuotationController::class, 'sendEmail'])->name('quotations.email');
     Route::post('/invoices/{invoice}/email', [App\Http\Controllers\InvoiceController::class, 'sendEmail'])->name('invoices.email');
+    
+    // Test PDF route (remove this in production)
+    Route::get('/test-pdf/{invoice}', function($invoiceId) {
+        $invoice = \App\Models\Invoice::with(['client', 'project', 'items.product', 'paymentSchedules.payments'])->findOrFail($invoiceId);
+        
+        $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadView('pdf.sheduled_invoice', [
+            'invoice' => $invoice,
+            'type' => 'invoice'
+        ]);
+        
+        return $pdf->stream("test-invoice-{$invoice->invoice_number}.pdf");
+    })->name('test.pdf');
 });

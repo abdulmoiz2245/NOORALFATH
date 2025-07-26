@@ -13,7 +13,9 @@ class InvoiceItem extends Model
         'description',
         'quantity',
         'unit_price',
+        'vat_rate', // VAT rate percentage
         'total_price',
+        'total_price_w_tax', // Total price including VAT
     ];
 
     protected $casts = [

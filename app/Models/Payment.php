@@ -9,11 +9,14 @@ class Payment extends Model
 {
     protected $fillable = [
         'invoice_id',
+        'invoice_payment_schedule_id',
         'amount',
         'payment_date',
         'payment_method',
         'reference_number',
         'notes',
+        'status',
+        'receipt_path',
     ];
 
     protected $casts = [
@@ -24,5 +27,10 @@ class Payment extends Model
     public function invoice(): BelongsTo
     {
         return $this->belongsTo(Invoice::class);
+    }
+
+    public function paymentSchedule(): BelongsTo
+    {
+        return $this->belongsTo(InvoicePaymentSchedule::class, 'invoice_payment_schedule_id');
     }
 }

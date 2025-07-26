@@ -27,6 +27,11 @@ Route::middleware('auth')->group(function () {
     Route::get('invoices/{invoice}/duplicate', [InvoiceController::class, 'duplicate'])->name('invoices.duplicate');
     Route::post('invoices/{invoice}/send', [InvoiceController::class, 'send'])->name('invoices.send');
     Route::get('invoices/{invoice}/pdf', [InvoiceController::class, 'generatePdf'])->name('invoices.pdf');
+    Route::patch('invoices/{invoice}/status', [InvoiceController::class, 'updateStatus'])->name('invoices.update-status');
+    
+    // PDF Download Routes
+    Route::get('invoices/{invoice}/payments/{payment}/download-pdf', [InvoiceController::class, 'downloadPaymentPdf'])->name('invoices.payments.download-pdf');
+    Route::get('invoices/{invoice}/schedules/{schedule}/download-pdf', [InvoiceController::class, 'downloadSchedulePdf'])->name('invoices.schedules.download-pdf');
     
     // Quotation Management Routes
     Route::resource('quotations', QuotationController::class);
@@ -46,6 +51,7 @@ Route::middleware('auth')->group(function () {
     
     // Payment Management Routes
     Route::resource('payments', PaymentController::class);
+    Route::get('payment-schedules/{schedule}/pay', [PaymentController::class, 'createForSchedule'])->name('payment-schedules.pay');
     
     // Report Routes
     Route::prefix('reports')->name('reports.')->group(function () {

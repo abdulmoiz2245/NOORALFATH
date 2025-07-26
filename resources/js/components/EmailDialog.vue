@@ -1,5 +1,5 @@
 <template>
-  <Dialog v-model:open="open">
+  <Dialog :open="open" @update:open="emit('update:open', $event)">
     <DialogContent class="sm:max-w-lg">
       <DialogHeader>
         <DialogTitle>
@@ -55,8 +55,6 @@
             Attach PDF {{ type }}
           </Label>
         </div>
-
-        <InputError :message="form.errors.email" />
 
         <DialogFooter>
           <Button
