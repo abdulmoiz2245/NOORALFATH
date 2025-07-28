@@ -5,8 +5,10 @@ namespace App\Http\Controllers;
 use App\Models\Quotation;
 use App\Models\Invoice;
 use App\Models\Client;
+use App\Models\Company;
 use App\Models\Project;
 use App\Models\Product;
+use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Inertia\Response;
@@ -75,6 +77,9 @@ class QuotationController extends Controller
             // 'issue_date' => 'required|date',
             'valid_until' => 'required|date|after:issue_date',
             'status' => 'nullable|in:draft,sent,accepted,rejected,expired',
+            'title' => 'nullable|string|max:255',
+            'issue_date' => 'required|date',
+            'description' => 'nullable|string',
             'notes' => 'nullable|string',
             'terms' => 'nullable|string',
             'tax_rate' => 'nullable|numeric|min:0|max:100',
@@ -83,30 +88,42 @@ class QuotationController extends Controller
             'items.*.description' => 'required|string',
             'items.*.quantity' => 'required|numeric|min:0.01',
             'items.*.unit_price' => 'required|numeric|min:0',
+            'items.*.total_amount' => 'required|numeric|min:0',
+            'items.*.tax_rate' => 'nullable|numeric|min:0|max:100'
         ]);
+
 
         $subtotal = 0;
         foreach ($validated['items'] as $item) {
             $subtotal += $item['quantity'] * $item['unit_price'];
         }
 
-        $taxRate = $validated['tax_rate'] ?? 0;
-        $taxAmount = $subtotal * ($taxRate / 100);
-        $totalAmount = $subtotal + $taxAmount;
+        $taxRate = 5;
+        $taxAmount = 0;
+        $totalAmountBeforeTax = 0;
+        $totalAmountWithTax = 0;
+
+        foreach ($validated['items'] as $item) {
+            $totalAmountBeforeTax += $item['quantity'] * $item['unit_price'];
+            $taxAmount += ($item['quantity'] * $item['unit_price']) * ($taxRate / 100);
+        }
+        $totalAmountWithTax = $totalAmountBeforeTax + $taxAmount;
 
         $quotation = Quotation::create([
             'client_id' => $validated['client_id'],
             // 'project_id' => $validated['project_id'],
             'quotation_number' => $validated['quotation_number'],
-            // 'issue_date' => $validated['issue_date'],
+            'issue_date' => $validated['issue_date'],
+            'title' => $validated['title'],
+            'description' => $validated['description'],
             'valid_until' => $validated['valid_until'],
             // 'status' => $validated['status'],
             'notes' => $validated['notes'],
             // 'terms' => $validated['terms'],
             'tax_rate' => $taxRate,
-            'subtotal' => $subtotal,
+            'subtotal' => $totalAmountBeforeTax,
             'tax_amount' => $taxAmount,
-            'total_amount' => $totalAmount,
+            'total_amount' => $totalAmountWithTax,
         ]);
 
         // Create quotation items
@@ -116,7 +133,8 @@ class QuotationController extends Controller
                 'description' => $item['description'],
                 'quantity' => $item['quantity'],
                 'unit_price' => $item['unit_price'],
-                'total_price' => $item['quantity'] * $item['unit_price'],
+                'total_price' => $item['total_amount'],
+                'tax_rate' => $item['tax_rate'], 
             ]);
         }
 
@@ -164,18 +182,19 @@ class QuotationController extends Controller
             'client_id' => 'required|exists:clients,id',
             'project_id' => 'nullable|exists:projects,id',
             'issue_date' => 'required|date',
+            'title' => 'nullable|string|max:255',
+            'description' => 'nullable|string',
             'valid_until' => 'required|date|after:issue_date',
-            'status' => 'required|in:draft,sent,accepted,rejected,expired',
             'notes' => 'nullable|string',
-            'terms' => 'nullable|string',
             'tax_rate' => 'nullable|numeric|min:0|max:100',
             'items' => 'required|array|min:1',
             'items.*.product_id' => 'nullable|exists:products,id',
             'items.*.description' => 'required|string',
             'items.*.quantity' => 'required|numeric|min:0.01',
             'items.*.unit_price' => 'required|numeric|min:0',
+            'items.*.total_amount' => 'required|numeric|min:0',
+            'items.*.tax_rate' => 'nullable|numeric|min:0|max:100'
         ]);
-
         $subtotal = 0;
         foreach ($validated['items'] as $item) {
             $subtotal += $item['quantity'] * $item['unit_price'];
@@ -185,18 +204,31 @@ class QuotationController extends Controller
         $taxAmount = $subtotal * ($taxRate / 100);
         $totalAmount = $subtotal + $taxAmount;
 
+        $taxRate = 5;
+        $taxAmount = 0;
+        $totalAmountBeforeTax = 0;
+        $totalAmountWithTax = 0;
+
+        foreach ($validated['items'] as $item) {
+            $totalAmountBeforeTax += $item['quantity'] * $item['unit_price'];
+            $taxAmount += ($item['quantity'] * $item['unit_price']) * ($taxRate / 100);
+        }
+        $totalAmountWithTax = $totalAmountBeforeTax + $taxAmount;
+
         $quotation->update([
             'client_id' => $validated['client_id'],
-            'project_id' => $validated['project_id'],
+            // 'project_id' => $validated['project_id'],
             'issue_date' => $validated['issue_date'],
+            'title' => $validated['title'],
+            'description' => $validated['description'],
             'valid_until' => $validated['valid_until'],
-            'status' => $validated['status'],
+            // 'status' => $validated['status'],
             'notes' => $validated['notes'],
-            'terms' => $validated['terms'],
+            // 'terms' => $validated['terms'],
             'tax_rate' => $taxRate,
-            'subtotal' => $subtotal,
+            'subtotal' => $totalAmountBeforeTax,
             'tax_amount' => $taxAmount,
-            'total_amount' => $totalAmount,
+            'total_amount' => $totalAmountWithTax,
         ]);
 
         // Delete existing items and create new ones
@@ -207,7 +239,8 @@ class QuotationController extends Controller
                 'description' => $item['description'],
                 'quantity' => $item['quantity'],
                 'unit_price' => $item['unit_price'],
-                'total_price' => $item['quantity'] * $item['unit_price'],
+                'total_price' => $item['total_amount'],
+                'tax_rate' => $item['tax_rate'], 
             ]);
         }
 
@@ -369,5 +402,27 @@ class QuotationController extends Controller
             return redirect()->back()
                 ->withErrors(['email' => 'Failed to send email: ' . $e->getMessage()]);
         }
+    }
+
+    public function downloadPdf(Quotation $quotation)
+    {
+        // Load relationships
+        $quotation->load(['client', 'project', 'items']);
+        $company = Company::first();
+       
+        $bankDetails = json_decode($company->bank_details, true);
+        $company->bank_details = $bankDetails;
+        // Generate PDF using your template
+        $pdf = Pdf::loadView('pdf.quotation', [
+            'quotation' => $quotation,
+            'company' => $company
+        ])->setPaper('a4', 'portrait')->setOptions([
+            'defaultFont' => 'sans-serif',
+      
+        ]);
+
+        $filename = "quotation-{$quotation->quotation_number}.pdf";
+
+        return $pdf->download($filename);
     }
 }

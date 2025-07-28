@@ -18,6 +18,7 @@ interface Client {
     company_name?: string;
     email?: string;
     phone?: string;
+    trn_number?: string;
     address?: string;
     city?: string;
     state?: string;
@@ -60,6 +61,7 @@ const form = useForm({
     company_name: props.client.company_name || '',
     email: props.client.email || '',
     phone: props.client.phone || '',
+    trn_number: props.client.trn_number || '',
     address: props.client.address || '',
     city: props.client.city || '',
     state: props.client.state || '',
@@ -137,6 +139,17 @@ const submit = () => {
                                 />
                                 <InputError :message="form.errors.company_name" />
                             </div>
+                        </div>
+
+                        <div>
+                            <Label for="trn_number">TRN Number</Label>
+                            <Input
+                                id="trn_number"
+                                v-model="form.trn_number"
+                                type="text"
+                                placeholder="Enter TRN number"
+                            />
+                            <InputError :message="form.errors.trn_number" />
                         </div>
 
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">

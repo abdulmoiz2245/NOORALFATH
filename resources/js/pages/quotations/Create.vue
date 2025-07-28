@@ -57,6 +57,7 @@ const form = useForm({
     title: '',
     description: '',
     valid_until: '',
+    issue_date: '',
     notes: '',
     quotation_number: props.nextQuotationNumber || '',
     items: [
@@ -65,7 +66,8 @@ const form = useForm({
             description: '',
             quantity: 1,
             unit_price: '',
-            amount: 0,
+            tax_rate: 0,
+            total_amount: 0,
         }
     ],
 });
@@ -76,7 +78,8 @@ const addItem = () => {
         description: '',
         quantity: 1,
         unit_price: '',
-        amount: 0,
+        tax_rate: 0,
+        total_amount: 0,
     });
 };
 
@@ -90,7 +93,9 @@ const updateItemAmount = (index: number) => {
     const item = form.items[index];
     const quantity = parseFloat(item.quantity.toString()) || 0;
     const unitPrice = parseFloat(item.unit_price.toString()) || 0;
-    item.amount = quantity * unitPrice;
+    const taxRate = parseFloat(item.tax_rate?.toString() || '0');
+    const baseAmount = quantity * unitPrice;
+    item.total_amount = baseAmount + (baseAmount * taxRate / 100);
 };
 
 const updateItemFromProduct = (index: number, productId: string) => {
@@ -102,8 +107,27 @@ const updateItemFromProduct = (index: number, productId: string) => {
     }
 };
 
+
+const subtotal = computed(() => {
+    return form.items.reduce((sum, item) => {
+        const quantity = parseFloat(item.quantity?.toString() || '0');
+        const unitPrice = parseFloat(item.unit_price?.toString() || '0');
+        return sum + (quantity * unitPrice);
+    }, 0);
+});
+
+const totalTax = computed(() => {
+    return form.items.reduce((sum, item) => {
+        const quantity = parseFloat(item.quantity?.toString() || '0');
+        const unitPrice = parseFloat(item.unit_price?.toString() || '0');
+        const taxRate = parseFloat(item.tax_rate?.toString() || '0');
+        const base = quantity * unitPrice;
+        return sum + (base * taxRate / 100);
+    }, 0);
+});
+
 const totalAmount = computed(() => {
-    return form.items.reduce((sum, item) => sum + (item.amount || 0), 0);
+    return subtotal.value + totalTax.value;
 });
 
 const formatCurrency = (amount: number) => {
@@ -155,7 +179,7 @@ const submit = () => {
                         <CardDescription>Enter the quotation information</CardDescription>
                     </CardHeader>
                     <CardContent class="space-y-4">
-                        <div class="grid gap-4 md:grid-cols-2">
+                        <div class="grid gap-4 md:grid-cols-3">
                             <div class="space-y-2">
                                 <Label for="client_id">Client *</Label>
                                 <Select v-model="form.client_id">
@@ -171,6 +195,16 @@ const submit = () => {
                                 <InputError :message="form.errors.client_id" />
                             </div>
 
+                            <div class="space-y-2">
+                                <Label for="issue_date">Issued Date</Label>
+                                <Input
+                                    id="issue_date"
+                                    v-model="form.issue_date"
+                                    type="date"
+                                    :class="{ 'border-red-500': form.errors.issue_date }"
+                                />
+                                <InputError :message="form.errors.issue_date" />
+                            </div>
                             <div class="space-y-2">
                                 <Label for="valid_until">Valid Until</Label>
                                 <Input
@@ -288,13 +322,28 @@ const submit = () => {
                                     </div>
                                 </div>
 
-                                <div class="grid gap-4 md:grid-cols-4">
+                                <div class="grid gap-4 md:grid-cols-5">
+                                    <div class="space-y-2">
+                                        <Label>Tax Rate (%)</Label>
+                                        <Input
+                                            v-model="item.tax_rate"
+                                            type="number"
+                                            step="0.01"
+                                            min="0"
+                                            max="100"
+                                            @input="updateItemAmount(index)"
+                                            :class="{ 'border-red-500': form.errors[`items.${index}.tax_rate`] }"
+                                        />
+                                        <p v-if="form.errors[`items.${index}.tax_rate`]" class="text-sm text-red-500">
+                                            {{ form.errors[`items.${index}.tax_rate`] }}
+                                        </p>
+                                    </div>
                                     <div class="space-y-2">
                                         <Label>Quantity *</Label>
                                         <Input
                                             v-model="item.quantity"
                                             type="number"
-                                            step="0.01"
+                                            step="1"
                                             min="0"
                                             @input="updateItemAmount(index)"
                                             :class="{ 'border-red-500': form.errors[`items.${index}.quantity`] }"
@@ -321,9 +370,17 @@ const submit = () => {
 
                                     <div class="space-y-2">
                                         <Label>Amount</Label>
-                                        <div class="px-3 py-2 bg-muted rounded-md text-sm font-medium">
-                                            {{ formatCurrency(item.amount) }}
-                                        </div>
+                                        <!-- <div class="px-3 py-2 bg-muted rounded-md text-sm font-medium">
+                                            {{ formatCurrency(item.total_amount) }}
+                                        </div> -->
+                                        <Input
+                                            v-model="item.total_amount"
+                                            type="number"
+                                            step="0.01"
+                                            min="0"
+                                            disabled
+                                            :class="{ 'border-red-500': form.errors[`items.${index}.quantity`] }"
+                                        />
                                     </div>
                                 </div>
                             </div>
@@ -331,7 +388,13 @@ const submit = () => {
                             <!-- Total -->
                             <div class="border-t pt-4">
                                 <div class="flex justify-end">
-                                    <div class="text-right">
+                                    <div class="text-right space-y-1">
+                                        <div class="text-sm text-muted-foreground">
+                                            Subtotal: {{ formatCurrency(subtotal) }}
+                                        </div>
+                                        <div class="text-sm text-muted-foreground">
+                                            Total Tax: {{ formatCurrency(totalTax) }}
+                                        </div>
                                         <div class="text-lg font-semibold">
                                             Total: {{ formatCurrency(totalAmount) }}
                                         </div>

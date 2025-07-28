@@ -42,6 +42,7 @@ interface Client {
     company_name?: string;
     email?: string;
     phone?: string;
+    trn_number?: string;
     address?: string;
     city?: string;
     state?: string;
@@ -217,18 +218,23 @@ const totalQuotationValue = props.client.quotations.reduce((sum, quotation) => s
                 </Card>
 
                 <!-- Statistics -->
-                <Card>
-                    <CardHeader>
-                        <CardTitle class="flex items-center gap-2">
-                            <FileText class="w-5 h-5" />
-                            Projects
-                        </CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                        <div class="text-2xl font-bold">{{ client.projects.length }}</div>
-                        <p class="text-xs text-muted-foreground">Total projects</p>
-                    </CardContent>
-                </Card>
+                        <div>
+                            <label class="text-sm font-medium text-muted-foreground">Client Name</label>
+                            <p class="text-lg font-semibold">{{ client.name }}</p>
+                        </div>
+
+                        <div v-if="client.trn_number">
+                            <label class="text-sm font-medium text-muted-foreground">TRN Number</label>
+                            <p class="text-base">{{ client.trn_number }}</p>
+                        </div>
+
+                        <div v-if="client.company_name">
+                            <label class="text-sm font-medium text-muted-foreground flex items-center gap-1">
+                                <Building class="w-4 h-4" />
+                                Company
+                            </label>
+                            <p class="text-base">{{ client.company_name }}</p>
+                        </div>
 
                 <Card>
                     <CardHeader>

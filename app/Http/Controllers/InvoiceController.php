@@ -122,6 +122,7 @@ class InvoiceController extends Controller
         $validated = $request->validate([
             'client_id' => 'required|exists:clients,id',
             'project_id' => 'nullable|exists:projects,id',
+            'po_number' => 'nullable|string|max:255',
             'invoice_number' => 'required|string|unique:invoices',
             'issue_date' => 'required|date',
             'due_date' => 'required|date|after:issue_date',
@@ -143,6 +144,8 @@ class InvoiceController extends Controller
             'payment_schedules.*.percentage' => 'nullable|numeric|min:0|max:100',
             'payment_schedules.*.amount' => 'nullable|numeric|min:0',
             'payment_schedules.*.due_date' => 'required_with:payment_schedules|date',
+            'payment_schedules.*.attachments' => 'nullable|array',
+            'payment_schedules.*.attachments.*' => 'nullable|file|mimes:jpg,jpeg,png,gif,webp|max:5120',
         ]);
 
         $totalAmountWithoutTax = 0;
@@ -170,8 +173,11 @@ class InvoiceController extends Controller
         $taxAmount = $subtotal * ($taxRate / 100);
         $totalAmount = $subtotal + $taxAmount;
 
+        // dd($validated['payment_schedules']);
+
         $invoice = Invoice::create([
             'client_id' => $validated['client_id'],
+            'po_number' => $validated['po_number'],
             'project_id' => $validated['project_id'],
             'invoice_number' => $validated['invoice_number'],
             'issue_date' => $validated['issue_date'],
@@ -202,7 +208,14 @@ class InvoiceController extends Controller
         if (isset($validated['payment_schedules']) && !empty($validated['payment_schedules'])) {
             foreach ($validated['payment_schedules'] as $index => $schedule) {
                 $amount = $schedule['amount'] ?? ($totalAmount * ($schedule['percentage'] / 100));
-                
+                $attachments = [];
+                if (isset($schedule['attachments']) && is_array($schedule['attachments'])) {
+                    foreach ($schedule['attachments'] as $file) {
+                        if ($file instanceof \Illuminate\Http\UploadedFile) {
+                            $attachments[] = $file->store('payment_attachments', 'public');
+                        }
+                    }
+                }
                 $invoice->paymentSchedules()->create([
                     'payment_number' => $index + 1,
                     'description' => $schedule['description'],
@@ -210,6 +223,7 @@ class InvoiceController extends Controller
                     'amount' => $amount,
                     'due_date' => $schedule['due_date'],
                     'status' => 'pending',
+                    'attachments' => $attachments,
                 ]);
             }
         } else {
@@ -267,6 +281,7 @@ class InvoiceController extends Controller
         $validated = $request->validate([
             'client_id' => 'required|exists:clients,id',
             'project_id' => 'nullable|exists:projects,id',
+            'po_number' => 'nullable|string|max:255',
             'issue_date' => 'required|date',
             'due_date' => 'required|date|after:issue_date',
             'status' => 'required|in:draft,pending,paid,overdue,cancelled',
@@ -285,6 +300,8 @@ class InvoiceController extends Controller
             'payment_schedules.*.percentage' => 'nullable|numeric|min:0|max:100',
             'payment_schedules.*.amount' => 'nullable|numeric|min:0',
             'payment_schedules.*.due_date' => 'required_with:payment_schedules|date',
+            'payment_schedules.*.attachments' => 'nullable|array',
+            'payment_schedules.*.attachments.*' => 'nullable|file|mimes:jpg,jpeg,png,gif,webp|max:5120',
         ]);
 
         $subtotal = 0;
@@ -308,6 +325,7 @@ class InvoiceController extends Controller
         $invoice->update([
             'client_id' => $validated['client_id'],
             'project_id' => $validated['project_id'],
+            'po_number' => $validated['po_number'],
             'issue_date' => $validated['issue_date'],
             'due_date' => $validated['due_date'],
             'status' => $validated['status'],
@@ -346,7 +364,16 @@ class InvoiceController extends Controller
         if (isset($validated['payment_schedules']) && !empty($validated['payment_schedules'])) {
             foreach ($validated['payment_schedules'] as $index => $schedule) {
                 $amount = $schedule['amount'] ?? ($totalAmount * ($schedule['percentage'] / 100));
-                
+                $attachments = [];
+                if (isset($schedule['attachments']) && is_array($schedule['attachments'])) {
+                    foreach ($schedule['attachments'] as $file) {
+                        if ($file instanceof \Illuminate\Http\UploadedFile) {
+                            $attachments[] = $file->store('payment_attachments', 'public');
+                        } elseif (is_string($file)) {
+                            $attachments[] = $file;
+                        }
+                    }
+                }
                 $invoice->paymentSchedules()->create([
                     'payment_number' => $index + 1,
                     'description' => $schedule['description'],
@@ -354,6 +381,7 @@ class InvoiceController extends Controller
                     'amount' => $amount,
                     'due_date' => $schedule['due_date'],
                     'status' => 'pending',
+                    'attachments' => $attachments,
                 ]);
             }
         } else {
@@ -528,6 +556,12 @@ class InvoiceController extends Controller
             'invoice' => $invoice,
             'payment' => $payment,
             'type' => 'payment_receipt'
+        ])->setPaper('a4', 'portrait')->setOptions([
+            'margin-top' => 20,
+            'margin-bottom' => 20,
+            'margin-left' => 20,
+            'margin-right' => 20,
+            'defaultFont' => 'sans-serif',
         ]);
         
         $filename = "invoice-{$invoice->invoice_number}-payment-{$payment->id}.pdf";

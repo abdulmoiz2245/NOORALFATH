@@ -17,7 +17,7 @@ return new class extends Migration
             $table->foreignId('client_id')->constrained()->onDelete('cascade');
             $table->foreignId('project_id')->nullable()->constrained()->onDelete('set null');
             $table->date('issue_date')->nullable();
-            $table->date('valid_until');
+            $table->date('valid_until')->nullable();
             $table->enum('status', ['draft', 'sent', 'accepted', 'rejected', 'expired'])->default('draft');
             $table->decimal('subtotal', 10, 2)->default(0);
             $table->decimal('tax_rate', 5, 2)->default(0);

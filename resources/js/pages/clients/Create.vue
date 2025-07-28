@@ -31,6 +31,7 @@ const form = useForm({
     company_name: '',
     email: '',
     phone: '',
+    trn_number: '',
     address: '',
     city: '',
     state: '',
@@ -110,18 +111,32 @@ const submit = () => {
                                 <InputError :message="form.errors.email" />
                             </div>
 
-                            <!-- Phone -->
-                            <div class="space-y-2">
-                                <Label for="phone">Phone</Label>
-                                <Input
-                                    id="phone"
-                                    v-model="form.phone"
-                                    type="text"
-                                    placeholder="Enter phone number"
-                                    :class="{ 'border-red-500': form.errors.phone }"
-                                />
-                                <InputError :message="form.errors.phone" />
-                            </div>
+
+                        <!-- Phone -->
+                        <div class="space-y-2">
+                            <Label for="phone">Phone</Label>
+                            <Input
+                                id="phone"
+                                v-model="form.phone"
+                                type="text"
+                                placeholder="Enter phone number"
+                                :class="{ 'border-red-500': form.errors.phone }"
+                            />
+                            <InputError :message="form.errors.phone" />
+                        </div>
+
+                        <!-- TRN Number -->
+                        <div class="space-y-2">
+                            <Label for="trn_number">TRN Number</Label>
+                            <Input
+                                id="trn_number"
+                                v-model="form.trn_number"
+                                type="text"
+                                placeholder="Enter TRN number"
+                                :class="{ 'border-red-500': form.errors.trn_number }"
+                            />
+                            <InputError :message="form.errors.trn_number" />
+                        </div>
 
                             <!-- City -->
                             <div class="space-y-2">

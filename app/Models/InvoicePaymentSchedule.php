@@ -22,6 +22,7 @@ class InvoicePaymentSchedule extends Model
         'paid_amount',
         'paid_date',
         'notes',
+        'attachments',
     ];
 
     protected $casts = [
@@ -30,6 +31,7 @@ class InvoicePaymentSchedule extends Model
         'amount' => 'decimal:2',
         'percentage' => 'decimal:2',
         'paid_amount' => 'decimal:2',
+        'attachments' => 'array',
     ];
 
     public function invoice(): BelongsTo

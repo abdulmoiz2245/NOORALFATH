@@ -13,6 +13,7 @@ import { ArrowLeft, Save, Plus, Trash2, UserPlus } from 'lucide-vue-next';
 import { Link } from '@inertiajs/vue3';
 import { useToast } from '@/composables/useToast';
 import { computed } from 'vue';
+import { ref } from 'vue';
 
 interface Client {
     id: number;
@@ -58,11 +59,13 @@ interface InvoicePaymentSchedule {
     amount: number;
     due_date: string;
     status?: string;
+    attachments?: (File | string)[];
 }
 
 interface Invoice {
     id: number;
     invoice_number: string;
+    po_number: string;
     client_id: number;
     project_id?: number;
     issue_date: string;
@@ -114,6 +117,7 @@ const breadcrumbs: BreadcrumbItem[] = [
 const form = useForm({
     client_id: props.invoice.client_id.toString(),
     project_id: props.invoice.project_id?.toString() || '',
+    po_number: props.invoice.po_number || '',
     issue_date: props.invoice.issue_date ? props.invoice.issue_date.split('T')[0] : '',
     due_date: props.invoice.due_date ? props.invoice.due_date.split('T')[0] : '',
     status: props.invoice.status || 'draft',
@@ -137,12 +141,14 @@ const form = useForm({
         percentage: schedule.percentage?.toString() || '',
         amount: schedule.amount.toString(),
         due_date: schedule.due_date ? schedule.due_date.split('T')[0] : '',
+        attachments: schedule.attachments || [],
     })) || [
         {
             description: 'Full Payment',
             percentage: '100',
             amount: '0',
             due_date: props.invoice.due_date,
+            attachments: [],
         }
     ],
 });
@@ -194,6 +200,43 @@ const updateItemAmount = (index: number) => {
     item.total_price = quantity * unitPrice;
 };
 
+
+const previewedImage = ref<File | string | null>(null);
+
+function handleAttachmentUpload(event: Event, scheduleIndex: number) {
+  const files = (event.target as HTMLInputElement).files;
+  if (!files) return;
+
+  const selectedFiles = Array.from(files).filter(file =>
+    file.type.startsWith('image/')
+  );
+
+  const current = form.payment_schedules[scheduleIndex].attachments || [];
+  form.payment_schedules[scheduleIndex].attachments = [...current, ...selectedFiles];
+}
+
+function removeAttachment(scheduleIndex: number, fileIndex: number) {
+  form.payment_schedules[scheduleIndex].attachments.splice(fileIndex, 1);
+}
+
+function getImageUrl(fileOrUrl: File | string): string {
+  if (typeof fileOrUrl === 'string') {
+    // Mimic Laravel's Storage::url()
+    if (/^https?:\/\//i.test(fileOrUrl)) {
+      return fileOrUrl; // already a full URL
+    }
+    const cleanPath = fileOrUrl.replace(/^public\//, '');
+    return `/storage/${cleanPath}`;
+  }
+
+  // If it's a File object, generate a local URL
+  return URL.createObjectURL(fileOrUrl);
+}
+
+function previewImage(file: File | string) {
+  previewedImage.value = file;
+}
+
 const updateItemFromProduct = (index: number, productId: string) => {
     const product = props.products.find(p => p.id.toString() === productId);
     if (product) {
@@ -236,6 +279,7 @@ const addPaymentSchedule = () => {
         percentage: '',
         amount: '0',
         due_date: form.due_date,
+        attachments: [],
     });
 };
 
@@ -262,13 +306,11 @@ const updatePaymentPercentage = (index: number) => {
 };
 
 const submit = () => {
-    form.put(`/invoices/${props.invoice.id}`, {
-        onSuccess: () => {
-            success('Success!', 'Invoice updated successfully');
-        },
-        onError: () => {
-            error('Error!', 'Failed to update invoice. Please check the form and try again.');
-        }
+    form.post(`/invoices/${props.invoice.id}`, {
+        method: 'put', // simulate PUT
+        preserveScroll: true,
+        onSuccess: () => success('Success!', 'Invoice updated'),
+        onError: () => error('Error!', 'Check the form and try again.')
     });
 };
 
@@ -321,6 +363,17 @@ const deleteInvoice = () => {
                     </CardHeader>
                     <CardContent class="space-y-4">
                         <div class="grid gap-4 md:grid-cols-2">
+                            <div class="space-y-2">
+                                <Label for="po_number">PO Number</Label>
+                                <Input
+                                    id="po_number"
+                                    v-model="form.po_number"
+                                    type="text"
+                                    placeholder="Enter PO number (optional)"
+                                    :class="{ 'border-red-500': form.errors.po_number }"
+                                />
+                                <InputError :message="form.errors.po_number" />
+                            </div>
                             <div class="space-y-2">
                                 <Label for="client_id">Client *</Label>
                                 <div class="flex space-x-2">
@@ -468,7 +521,7 @@ const deleteInvoice = () => {
 
                                     <div class="space-y-2">
                                         <Label>Description *</Label>
-                                        <Input
+                                        <Textarea
                                             v-model="item.description"
                                             placeholder="Item description"
                                             :class="{ 'border-red-500': getItemError(index, 'description') }"
@@ -613,6 +666,40 @@ const deleteInvoice = () => {
                                         />
                                     </div>
                                 </div>
+
+                                <!-- Image Upload Input -->
+                                <div class="space-y-2">
+                                    <Label>Attachments (Images Only)</Label>
+                                    <Input
+                                        type="file"
+                                        multiple
+                                        accept="image/*"
+                                        @change="handleAttachmentUpload($event, index)"
+                                    />
+                                </div>
+
+                                <!-- Thumbnail Gallery -->
+                                <div class="flex flex-wrap gap-3 mt-3">
+                                    <div
+                                        v-for="(file, fileIndex) in schedule.attachments"
+                                        :key="fileIndex"
+                                        class="relative group w-24 h-24 rounded-lg overflow-hidden border border-gray-300 dark:border-gray-700 shadow-sm cursor-pointer"
+                                        @click="previewImage(file)"
+                                    >
+                                        <img
+                                            :src="getImageUrl(file)"
+                                            alt="attachment"
+                                            class="object-cover w-full h-full transition-transform group-hover:scale-105"
+                                        />
+                                        <!-- Remove button -->
+                                        <button
+                                            class="absolute top-1 right-1 bg-black/60 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center hover:bg-red-600"
+                                            @click.stop="removeAttachment(index, fileIndex)"
+                                        >
+                                        &times;
+                                        </button>
+                                    </div>
+                                </div>
                             </div>
                         </div>
                     </CardContent>
@@ -665,5 +752,17 @@ const deleteInvoice = () => {
                 </div>
             </form>
         </div>
+        <Transition name="fade">
+        <div
+            v-if="previewedImage"
+            class="fixed inset-0 z-50 flex items-center justify-center bg-black/90 backdrop-blur-sm p-4"
+            @click.self="previewedImage = null"
+        >
+            <img
+            :src="getImageUrl(previewedImage)"
+            class="max-w-[80%] max-h-[80%] object-contain rounded-lg shadow-xl border border-gray-200 dark:border-gray-700"
+            />
+        </div>
+        </Transition>
     </AppLayout>
 </template>

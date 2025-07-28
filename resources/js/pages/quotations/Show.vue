@@ -54,7 +54,7 @@ interface Quotation {
     tax_rate: number;
     tax_amount: number;
     discount_amount: number;
-    total: number;
+    total_amount: number;
     notes?: string;
     terms?: string;
     created_at: string;
@@ -110,8 +110,42 @@ const duplicateQuotation = () => {
     });
 };
 
-const downloadPdf = () => {
-    window.open(`/quotations/${props.quotation.id}/pdf`, '_blank');
+
+const downloadPdf = async () => {
+    try {
+        const response = await fetch(`/quotations/${props.quotation.id}/download-pdf`, {
+            method: 'GET',
+            headers: {
+                'Accept': 'application/pdf',
+                'X-Requested-With': 'XMLHttpRequest',
+                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || ''
+            }
+        });
+
+        if (!response.ok) {
+            throw new Error('Failed to download PDF');
+        }
+
+        // Get the filename from response headers or use default
+        const contentDisposition = response.headers.get('Content-Disposition');
+        const filename = contentDisposition?.match(/filename="(.+)"/)?.[1] || `quotation-${props.quotation.quotation_number}.pdf`;
+
+        // Create blob and download
+        const blob = await response.blob();
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = filename;
+        document.body.appendChild(a);
+        a.click();
+        window.URL.revokeObjectURL(url);
+        document.body.removeChild(a);
+
+        success('Success!', `PDF downloaded as ${filename}`);
+    } catch (err) {
+        error('Error!', 'Failed to download PDF.');
+        console.error('Download error:', err);
+    }
 };
 
 const getStatusBadgeClass = (status: string) => {
@@ -182,11 +216,11 @@ const isExpired = () => {
                     <Button variant="outline" size="sm" @click="sendQuotation" :disabled="form.processing">
                         <Mail class="w-4 h-4 mr-2" />
                         Send Email
-                    </Button>
+                    </Button>-->
                     <Button variant="outline" size="sm" @click="downloadPdf" :disabled="form.processing">
                         <Download class="w-4 h-4 mr-2" />
                         Download PDF
-                    </Button> -->
+                    </Button> 
                     <Button variant="outline" as-child>
                         <Link :href="`/quotations/${quotation.id}/edit`">
                             <Edit3 class="w-4 h-4 mr-2" />
@@ -203,7 +237,7 @@ const isExpired = () => {
                         <div class="flex items-center space-x-2">
                             <DollarSign class="w-5 h-5 text-green-600" />
                             <div>
-                                <p class="text-2xl font-bold">{{ formatCurrency(quotation.total) }}</p>
+                                <p class="text-2xl font-bold">{{ formatCurrency(quotation.total_amount) }}</p>
                                 <p class="text-sm text-gray-500">Total Amount</p>
                             </div>
                         </div>
@@ -359,7 +393,7 @@ const isExpired = () => {
                                 </tr>
                                 <tr class="border-b-2 border-gray-800">
                                     <td colspan="3" class="p-4 text-right text-lg font-bold">Total:</td>
-                                    <td class="p-4 text-right text-lg font-bold">{{ formatCurrency(quotation.total) }}</td>
+                                    <td class="p-4 text-right text-lg font-bold">{{ formatCurrency(quotation.total_amount) }}</td>
                                 </tr>
                             </tfoot>
                         </table>
@@ -368,7 +402,7 @@ const isExpired = () => {
             </Card>
 
             <!-- Timeline -->
-            <Card>
+            <!-- <Card>
                 <CardHeader>
                     <CardTitle>Timeline</CardTitle>
                     <CardDescription>Important dates for this quotation</CardDescription>
@@ -411,7 +445,7 @@ const isExpired = () => {
                         </div>
                     </div>
                 </CardContent>
-            </Card>
+            </Card> -->
         </div>
     </AppLayout>
 </template>

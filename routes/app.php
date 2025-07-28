@@ -28,7 +28,10 @@ Route::middleware('auth')->group(function () {
     Route::resource('projects', ProjectController::class);
     
     // Invoice Management Routes
-    Route::resource('invoices', InvoiceController::class);
+    Route::resource('invoices', InvoiceController::class)->except([
+        'update'
+    ]);
+    Route::post('invoices/{invoice}/', [InvoiceController::class, 'update'])->name('invoices.update');
     Route::get('invoices/{invoice}/duplicate', [InvoiceController::class, 'duplicate'])->name('invoices.duplicate');
     Route::post('invoices/{invoice}/send', [InvoiceController::class, 'send'])->name('invoices.send');
     Route::get('invoices/{invoice}/pdf', [InvoiceController::class, 'generatePdf'])->name('invoices.pdf');
@@ -38,7 +41,9 @@ Route::middleware('auth')->group(function () {
     // PDF Download Routes
     Route::get('invoices/{invoice}/payments/{payment}/download-pdf', [InvoiceController::class, 'downloadPaymentPdf'])->name('invoices.payments.download-pdf');
     Route::get('invoices/{invoice}/schedules/{schedule}/download-pdf', [InvoiceController::class, 'downloadSchedulePdf'])->name('invoices.schedules.download-pdf');
-    
+
+    Route::get('quotations/{quotation}/download-pdf', [QuotationController::class, 'downloadPdf'])->name('quotations.download-pdf');
+
     // Quotation Management Routes
     Route::resource('quotations', QuotationController::class);
     Route::get('quotations/{quotation}/duplicate', [QuotationController::class, 'duplicate'])->name('quotations.duplicate');

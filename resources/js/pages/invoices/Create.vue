@@ -103,6 +103,7 @@ interface InvoiceForm {
 const form = useForm({
     client_id: '',
     project_id: 'no_project',
+    po_number: '',
     issue_date: new Date().toISOString().split('T')[0],
     due_date: '',
     payment_terms: 'net_30',
@@ -330,6 +331,17 @@ const submit = () => {
                     </CardHeader>
                     <CardContent class="space-y-4">
                         <div class="grid gap-4 md:grid-cols-2">
+                            <div class="space-y-2">
+                                <Label for="po_number">PO Number</Label>
+                                <Input
+                                    id="po_number"
+                                    v-model="form.po_number"
+                                    type="text"
+                                    placeholder="Enter PO number (optional)"
+                                    :class="{ 'border-red-500': form.errors.po_number }"
+                                />
+                                <InputError :message="form.errors.po_number" />
+                            </div>
                             <div class="space-y-2">
                                 <Label for="client_id">Client *</Label>
                                 <div class="flex space-x-2">

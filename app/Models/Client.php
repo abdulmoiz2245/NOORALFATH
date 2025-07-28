@@ -12,6 +12,7 @@ class Client extends Model
         'company_name',
         'email',
         'phone',
+        'trn_number',
         'address',
         'city',
         'state',
