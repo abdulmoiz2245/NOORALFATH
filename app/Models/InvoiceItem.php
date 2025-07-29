@@ -11,6 +11,7 @@ class InvoiceItem extends Model
         'invoice_id',
         'product_id',
         'description',
+        'unit',
         'quantity',
         'unit_price',
         'vat_rate', // VAT rate percentage

@@ -4,6 +4,7 @@ use App\Http\Controllers\ClientController;
 use App\Http\Controllers\CompanyController;
 use App\Http\Controllers\ExpenseController;
 use App\Http\Controllers\InvoiceController;
+use App\Http\Controllers\LocalPurchaseOrderController;
 use App\Http\Controllers\PaymentController;
 use App\Http\Controllers\ProductController;
 use App\Http\Controllers\ProjectController;
@@ -13,6 +14,11 @@ use App\Http\Controllers\VendorController;
 use Illuminate\Support\Facades\Route;
 
 Route::middleware('auth')->group(function () {
+
+    Route::resource('lpos', LocalPurchaseOrderController::class);
+    // PDF Download Route for LPOs
+    Route::get('lpos/{lpo}/download-pdf', [LocalPurchaseOrderController::class, 'downloadPdf'])->name('lpos.download-pdf');
+
     // Company Profile Routes
     Route::get('/company', [CompanyController::class, 'index'])->name('company.index');
     Route::get('/company/create', [CompanyController::class, 'create'])->name('company.create');

@@ -44,11 +44,16 @@ const mainNavItems: NavItem[] = [
         href: '/products',
         icon: Package,
     },
-    // {
-    //     title: 'Vendors',
-    //     href: '/vendors',
-    //     icon: Truck,
-    // },
+    {
+        title: 'Vendors',
+        href: '/vendors',
+        icon: Truck,
+    },
+    {
+        title: 'Local Purchase Orders',
+        href: '/lpos',
+        icon: Truck,
+    },
     // {
     //     title: 'Expenses',
     //     href: '/expenses',

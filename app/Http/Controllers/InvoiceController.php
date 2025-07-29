@@ -106,10 +106,12 @@ class InvoiceController extends Controller
         $clients = Client::select('id', 'name')->get();
         $projects = Project::with('client')->select('id', 'name', 'client_id')->get();
         $products = Product::select('id', 'name', 'price')->get();
+        $units = $this->getPredefinedUnits();
         return Inertia::render('invoices/Create', [
             'clients' => $clients,
             'projects' => $projects,
             'products' => $products,
+            'units' => $units,
             'nextInvoiceNumber' => $this->generateInvoiceNumber()
         ]);
     }
@@ -134,6 +136,7 @@ class InvoiceController extends Controller
             'items' => 'required|array|min:1',
             'items.*.product_id' => 'nullable|exists:products,id',
             'items.*.description' => 'required|string',
+            'items.*.unit' => 'nullable|string',
             'items.*.quantity' => 'required|numeric|min:0.01',
             'items.*.unit_price' => 'required|numeric|min:0',
             'items.*.vat_rate' => 'required|numeric|min:0|max:100',
@@ -196,6 +199,7 @@ class InvoiceController extends Controller
             $invoice->items()->create([
                 'product_id' => $item['product_id'],
                 'description' => $item['description'],
+                'unit' => $item['unit'] ?? 'pcs',
                 'quantity' => $item['quantity'],
                 'unit_price' => $item['unit_price'],
                 'vat_rate' => $item['vat_rate'],
@@ -262,6 +266,7 @@ class InvoiceController extends Controller
         $clients = Client::select('id', 'name')->get();
         $projects = Project::with('client')->select('id', 'name', 'client_id')->get();
         $products = Product::select('id', 'name', 'price')->get();
+        $units = $this->getPredefinedUnits();
         
         $invoice->load(['items', 'paymentSchedules']);
         
@@ -269,7 +274,8 @@ class InvoiceController extends Controller
             'invoice' => $invoice,
             'clients' => $clients,
             'projects' => $projects,
-            'products' => $products
+            'products' => $products,
+            'units' => $units
         ]);
     }
 
@@ -292,6 +298,7 @@ class InvoiceController extends Controller
             'discount_amount' => 'nullable|numeric|min:0',
             'items.*.product_id' => 'nullable|exists:products,id',
             'items.*.description' => 'required|string',
+            'items.*.unit' => 'nullable|string',
             'items.*.quantity' => 'required|numeric|min:0.01',
             'items.*.unit_price' => 'required|numeric|min:0',
             'items.*.vat_rate' => 'required|numeric|min:0|max:100',
@@ -351,6 +358,7 @@ class InvoiceController extends Controller
             $invoice->items()->create([
                 'product_id' => $item['product_id'],
                 'description' => $item['description'],
+                'unit' => $item['unit'] ?? 'pcs',
                 'quantity' => $item['quantity'],
                 'unit_price' => $item['unit_price'],
                 'vat_rate' => $item['vat_rate'],
@@ -624,5 +632,36 @@ class InvoiceController extends Controller
             'clients' => $clients,
             'statuses' => $statuses
         ]);
+    }
+
+    private function getPredefinedUnits(): array
+    {
+        return [
+            'pcs' => 'Pieces',
+            'kg' => 'Kilogram',
+            'gm' => 'Gram',
+            'ltr' => 'Liter',
+            'ml' => 'Milliliter',
+            'mtr' => 'Meter',
+            'cm' => 'Centimeter',
+            'mm' => 'Millimeter',
+            'sq_mtr' => 'Square Meter',
+            'cu_mtr' => 'Cubic Meter',
+            'ft' => 'Feet',
+            'inch' => 'Inch',
+            'box' => 'Box',
+            'pack' => 'Pack',
+            'set' => 'Set',
+            'pair' => 'Pair',
+            'doz' => 'Dozen',
+            'roll' => 'Roll',
+            'bundle' => 'Bundle',
+            'lot' => 'Lot',
+            'unit' => 'Unit',
+            'hour' => 'Hour',
+            'day' => 'Day',
+            'month' => 'Month',
+            'year' => 'Year',
+        ];
     }
 }

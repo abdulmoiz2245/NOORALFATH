@@ -12,9 +12,9 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { ArrowLeft, Save, Plus, Trash2 } from 'lucide-vue-next';
 import { Link } from '@inertiajs/vue3';
 import { useToast } from '@/composables/useToast';
-import { computed } from 'vue';
+import { ref, computed } from 'vue';
 
-interface Client {
+interface Vendor {
     id: number;
     name: string;
     email: string;
@@ -27,38 +27,10 @@ interface Product {
     unit: string;
 }
 
-interface QuotationItem {
-    id?: number;
-    product_id?: number;
-    description: string;
-    quantity: number;
-    unit_price: number;
-    tax_rate?: number;
-    amount: number;
-    total_price: number;
-}
-
-interface Quotation {
-    id: number;
-    quotation_number: string;
-    client_id: number;
-    title?: string;
-    description?: string;
-    valid_until?: string;
-    issue_date?: string;
-    notes?: string;
-    status: string;
-    total_amount: number;
-    client?: Client;
-    items: QuotationItem[];
-    created_at: string;
-    updated_at: string;
-}
-
 interface Props {
-    quotation: Quotation;
-    clients: Client[];
+    vendors: Vendor[];
     products: Product[];
+    nextLpoNumber: string;
 }
 
 const props = defineProps<Props>();
@@ -70,62 +42,37 @@ const breadcrumbs: BreadcrumbItem[] = [
         href: '/dashboard',
     },
     {
-        title: 'Quotations',
-        href: '/quotations',
+        title: 'Local Purchase Orders',
+        href: '/lpos',
     },
     {
-        title: props.quotation.quotation_number,
-        href: `/quotations/${props.quotation.id}`,
-    },
-    {
-        title: 'Edit',
-        href: `/quotations/${props.quotation.id}/edit`,
+        title: 'Create LPO',
+        href: '/lpos/create',
     },
 ];
 
 const form = useForm({
-    client_id: props.quotation.client_id.toString(),
-    title: props.quotation.title || '',
-    description: props.quotation.description || '',
-    valid_until: props.quotation.valid_until || '',
-    issue_date: props.quotation.issue_date || '',
-    notes: props.quotation.notes || '',
-    items: props.quotation.items.map(item => ({
-        id: item.id,
-        product_id: item.product_id?.toString() || '',
-        description: item.description,
-        quantity: item.quantity,
-        unit_price: item.unit_price.toString(),
-        tax_rate: item.tax_rate ?? 0,
-        total_amount: item.total_price,
-    })),
-});
-
-const subtotal = computed(() => {
-    return form.items.reduce((sum, item) => {
-        const quantity = parseFloat(item.quantity?.toString() || '0');
-        const unitPrice = parseFloat(item.unit_price?.toString() || '0');
-        return sum + (quantity * unitPrice);
-    }, 0);
-});
-
-const totalTax = computed(() => {
-    return form.items.reduce((sum, item) => {
-        const quantity = parseFloat(item.quantity?.toString() || '0');
-        const unitPrice = parseFloat(item.unit_price?.toString() || '0');
-        const taxRate = parseFloat(item.tax_rate?.toString() || '0');
-        const base = quantity * unitPrice;
-        return sum + (base * taxRate / 100);
-    }, 0);
-});
-
-const totalAmount = computed(() => {
-    return subtotal.value + totalTax.value;
+    vendor_id: '',
+    subject: '',
+    description: '',
+    issue_date: '',
+    trn_number: '',
+    terms: '',
+    lpo_number: props.nextLpoNumber || '',
+    items: [
+        {
+            product_id: '',
+            description: '',
+            quantity: 1,
+            unit_price: '',
+            tax_rate: 0,
+            total_amount: 0,
+        }
+    ],
 });
 
 const addItem = () => {
     form.items.push({
-        id: undefined,
         product_id: '',
         description: '',
         quantity: 1,
@@ -159,10 +106,27 @@ const updateItemFromProduct = (index: number, productId: string) => {
     }
 };
 
-// For legacy compatibility, you can use this if you want to sum only the item total_amount fields:
-// const totalAmount = computed(() => {
-//     return form.items.reduce((sum, item) => sum + (item.total_amount || 0), 0);
-// });
+const subtotal = computed(() => {
+    return form.items.reduce((sum, item) => {
+        const quantity = parseFloat(item.quantity?.toString() || '0');
+        const unitPrice = parseFloat(item.unit_price?.toString() || '0');
+        return sum + (quantity * unitPrice);
+    }, 0);
+});
+
+const totalTax = computed(() => {
+    return form.items.reduce((sum, item) => {
+        const quantity = parseFloat(item.quantity?.toString() || '0');
+        const unitPrice = parseFloat(item.unit_price?.toString() || '0');
+        const taxRate = parseFloat(item.tax_rate?.toString() || '0');
+        const base = quantity * unitPrice;
+        return sum + (base * taxRate / 100);
+    }, 0);
+});
+
+const totalAmount = computed(() => {
+    return subtotal.value + totalTax.value;
+});
 
 const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat('en-US', {
@@ -172,32 +136,19 @@ const formatCurrency = (amount: number) => {
 };
 
 const submit = () => {
-    form.put(`/quotations/${props.quotation.id}`, {
+    form.post('/lpos', {
         onSuccess: () => {
-            success('Success!', 'Quotation updated successfully');
+            success('Success!', 'Local Purchase Order created successfully');
         },
         onError: () => {
-            error('Error!', 'Failed to update quotation. Please check the form and try again.');
+            error('Error!', 'Failed to create LPO. Please check the form and try again.');
         }
     });
-};
-
-const deleteQuotation = () => {
-    if (confirm('Are you sure you want to delete this quotation? This action cannot be undone.')) {
-        form.delete(`/quotations/${props.quotation.id}`, {
-            onSuccess: () => {
-                success('Success!', 'Quotation deleted successfully');
-            },
-            onError: () => {
-                error('Error!', 'Failed to delete quotation.');
-            }
-        });
-    }
 };
 </script>
 
 <template>
-    <Head :title="`Edit ${quotation.quotation_number}`" />
+    <Head title="Create Local Purchase Order" />
 
     <AppLayout :breadcrumbs="breadcrumbs">
         <div class="space-y-6 p-6">
@@ -205,20 +156,16 @@ const deleteQuotation = () => {
             <div class="flex items-center justify-between">
                 <div class="flex items-center space-x-4">
                     <Button variant="outline" size="sm" as-child>
-                        <Link href="/quotations">
+                        <Link href="/lpos">
                             <ArrowLeft class="w-4 h-4 mr-2" />
-                            Back to Quotations
+                            Back to LPOs
                         </Link>
                     </Button>
                     <div>
-                        <h1 class="text-3xl font-bold tracking-tight">Edit Quotation</h1>
-                        <p class="text-muted-foreground">{{ quotation.quotation_number }}</p>
+                        <h1 class="text-3xl font-bold tracking-tight">Create Local Purchase Order</h1>
+                        <p class="text-muted-foreground">Create a new purchase order for your vendor</p>
                     </div>
                 </div>
-                <Button variant="destructive" @click="deleteQuotation" :disabled="form.processing">
-                    <Trash2 class="w-4 h-4 mr-2" />
-                    Delete Quotation
-                </Button>
             </div>
 
             <!-- Form -->
@@ -226,24 +173,24 @@ const deleteQuotation = () => {
                 <!-- Basic Information -->
                 <Card>
                     <CardHeader>
-                        <CardTitle>Quotation Details</CardTitle>
-                        <CardDescription>Update the quotation information</CardDescription>
+                        <CardTitle>LPO Details</CardTitle>
+                        <CardDescription>Enter the Local Purchase Order information</CardDescription>
                     </CardHeader>
                     <CardContent class="space-y-4">
                         <div class="grid gap-4 md:grid-cols-3">
                             <div class="space-y-2">
-                                <Label for="client_id">Client *</Label>
-                                <Select v-model="form.client_id">
-                                    <SelectTrigger :class="{ 'border-red-500': form.errors.client_id }">
-                                        <SelectValue placeholder="Select client" />
+                                <Label for="vendor_id">Vendor *</Label>
+                                <Select v-model="form.vendor_id">
+                                    <SelectTrigger :class="{ 'border-red-500': form.errors.vendor_id }">
+                                        <SelectValue placeholder="Select vendor" />
                                     </SelectTrigger>
                                     <SelectContent>
-                                        <SelectItem v-for="client in clients" :key="client.id" :value="client.id.toString()">
-                                            {{ client.name }} - {{ client.email }}
+                                        <SelectItem v-for="vendor in vendors" :key="vendor.id" :value="vendor.id.toString()">
+                                            {{ vendor.name }} - {{ vendor.email }}
                                         </SelectItem>
                                     </SelectContent>
                                 </Select>
-                                <InputError :message="form.errors.client_id" />
+                                <InputError :message="form.errors.vendor_id" />
                             </div>
 
                             <div class="space-y-2">
@@ -258,26 +205,34 @@ const deleteQuotation = () => {
                             </div>
 
                             <div class="space-y-2">
-                                <Label for="valid_until">Valid Until</Label>
+                                <Label for="trn_number">TRN Number</Label>
                                 <Input
-                                    id="valid_until"
-                                    v-model="form.valid_until"
-                                    type="date"
-                                    :class="{ 'border-red-500': form.errors.valid_until }"
+                                    id="trn_number"
+                                    v-model="form.trn_number"
+                                    placeholder="Enter TRN number"
+                                    :class="{ 'border-red-500': form.errors.trn_number }"
                                 />
-                                <InputError :message="form.errors.valid_until" />
+                                <InputError :message="form.errors.trn_number" />
                             </div>
                         </div>
 
                         <div class="space-y-2">
-                            <Label for="title">Title</Label>
+                            <Label for="subject">Subject</Label>
                             <Input
-                                id="title"
-                                v-model="form.title"
-                                placeholder="Quotation title"
-                                :class="{ 'border-red-500': form.errors.title }"
+                                id="subject"
+                                v-model="form.subject"
+                                placeholder="LPO subject"
+                                :class="{ 'border-red-500': form.errors.subject }"
                             />
-                            <InputError :message="form.errors.title" />
+                            <InputError :message="form.errors.subject" />
+
+                            <Input
+                                id="lpo_number"
+                                type="hidden"
+                                v-model="form.lpo_number"
+                                placeholder="LPO number"
+                                :class="{ 'border-red-500': form.errors.lpo_number }"
+                            />
                         </div>
 
                         <div class="space-y-2">
@@ -285,7 +240,7 @@ const deleteQuotation = () => {
                             <Textarea
                                 id="description"
                                 v-model="form.description"
-                                placeholder="Quotation description"
+                                placeholder="LPO description"
                                 rows="3"
                                 :class="{ 'border-red-500': form.errors.description }"
                             />
@@ -293,11 +248,11 @@ const deleteQuotation = () => {
                         </div>
 
                         <div class="space-y-2">
-                            <Label for="notes">Notes</Label>
+                            <Label for="terms">Terms & Conditions</Label>
                             <Textarea
-                                id="notes"
-                                v-model="form.notes"
-                                placeholder="Additional notes or terms"
+                                id="terms"
+                                v-model="form.terms"
+                                placeholder="Terms and conditions"
                                 rows="2"
                             />
                         </div>
@@ -309,8 +264,8 @@ const deleteQuotation = () => {
                     <CardHeader>
                         <div class="flex justify-between items-center">
                             <div>
-                                <CardTitle>Quotation Items</CardTitle>
-                                <CardDescription>Update products and services in this quotation</CardDescription>
+                                <CardTitle>LPO Items</CardTitle>
+                                <CardDescription>Add products and services to this purchase order</CardDescription>
                             </div>
                             <Button type="button" @click="addItem" variant="outline" size="sm">
                                 <Plus class="w-4 h-4 mr-2" />
@@ -339,13 +294,13 @@ const deleteQuotation = () => {
                                         <Label>Product (Optional)</Label>
                                         <Select 
                                             :model-value="item.product_id" 
-                                            @update:model-value="(value) => { item.product_id = value ?? ''; if (value) updateItemFromProduct(index, value); }"
+                                            @update:model-value="(value) => { item.product_id = value; updateItemFromProduct(index, value); }"
                                         >
                                             <SelectTrigger>
                                                 <SelectValue placeholder="Select product" />
                                             </SelectTrigger>
                                             <SelectContent>
-                                                <SelectItem value="null">Custom Item</SelectItem>
+                                                <SelectItem value="nill">Custom Item</SelectItem>
                                                 <SelectItem v-for="product in products" :key="product.id" :value="product.id.toString()">
                                                     {{ product.name }} - {{ formatCurrency(product.price) }}
                                                 </SelectItem>
@@ -358,10 +313,10 @@ const deleteQuotation = () => {
                                         <Input
                                             v-model="item.description"
                                             placeholder="Item description"
-                                            :class="{ 'border-red-500': (form.errors as any)[`items.${index}.description`] }"
+                                            :class="{ 'border-red-500': form.errors[`items.${index}.description`] }"
                                         />
-                                        <p v-if="(form.errors as any)[`items.${index}.description`]" class="text-sm text-red-500">
-                                            {{ (form.errors as any)[`items.${index}.description`] }}
+                                        <p v-if="form.errors[`items.${index}.description`]" class="text-sm text-red-500">
+                                            {{ form.errors[`items.${index}.description`] }}
                                         </p>
                                     </div>
                                 </div>
@@ -376,13 +331,13 @@ const deleteQuotation = () => {
                                             min="0"
                                             max="100"
                                             @input="updateItemAmount(index)"
-                                            :class="{ 'border-red-500': (form.errors as any)[`items.${index}.tax_rate`] }"
+                                            :class="{ 'border-red-500': form.errors[`items.${index}.tax_rate`] }"
                                         />
-                                        <p v-if="(form.errors as any)[`items.${index}.tax_rate`]" class="text-sm text-red-500">
-                                            {{ (form.errors as any)[`items.${index}.tax_rate`] }}
+                                        <p v-if="form.errors[`items.${index}.tax_rate`]" class="text-sm text-red-500">
+                                            {{ form.errors[`items.${index}.tax_rate`] }}
                                         </p>
                                     </div>
-                                    <div>
+                                    <div class="space-y-2">
                                         <Label>Quantity *</Label>
                                         <Input
                                             v-model="item.quantity"
@@ -390,10 +345,10 @@ const deleteQuotation = () => {
                                             step="1"
                                             min="0"
                                             @input="updateItemAmount(index)"
-                                            :class="{ 'border-red-500': (form.errors as any)[`items.${index}.quantity`] }"
+                                            :class="{ 'border-red-500': form.errors[`items.${index}.quantity`] }"
                                         />
-                                        <p v-if="(form.errors as any)[`items.${index}.quantity`]" class="text-sm text-red-500">
-                                            {{ (form.errors as any)[`items.${index}.quantity`] }}
+                                        <p v-if="form.errors[`items.${index}.quantity`]" class="text-sm text-red-500">
+                                            {{ form.errors[`items.${index}.quantity`] }}
                                         </p>
                                     </div>
 
@@ -405,10 +360,10 @@ const deleteQuotation = () => {
                                             step="0.01"
                                             min="0"
                                             @input="updateItemAmount(index)"
-                                            :class="{ 'border-red-500': (form.errors as any)[`items.${index}.unit_price`] }"
+                                            :class="{ 'border-red-500': form.errors[`items.${index}.unit_price`] }"
                                         />
-                                        <p v-if="(form.errors as any)[`items.${index}.unit_price`]" class="text-sm text-red-500">
-                                            {{ (form.errors as any)[`items.${index}.unit_price`] }}
+                                        <p v-if="form.errors[`items.${index}.unit_price`]" class="text-sm text-red-500">
+                                            {{ form.errors[`items.${index}.unit_price`] }}
                                         </p>
                                     </div>
 
@@ -429,7 +384,8 @@ const deleteQuotation = () => {
                                 </div>
                             </div>
 
-                           <div class="border-t pt-4">
+                            <!-- Total -->
+                            <div class="border-t pt-4">
                                 <div class="flex justify-end">
                                     <div class="text-right space-y-1">
                                         <div class="text-sm text-muted-foreground">
@@ -451,11 +407,11 @@ const deleteQuotation = () => {
                 <!-- Form Actions -->
                 <div class="flex justify-end space-x-4">
                     <Button variant="outline" type="button" as-child>
-                        <Link :href="`/quotations/${quotation.id}`">Cancel</Link>
+                        <Link href="/lpos">Cancel</Link>
                     </Button>
                     <Button type="submit" :disabled="form.processing">
                         <Save class="w-4 h-4 mr-2" />
-                        {{ form.processing ? 'Updating...' : 'Update Quotation' }}
+                        {{ form.processing ? 'Creating...' : 'Create LPO' }}
                     </Button>
                 </div>
             </form>

@@ -4,7 +4,7 @@
 
 <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    <title>Noor Alfath Technical Services LLC — Sales Quote — NAFT_QUO_2025_1344 — View.pdf</title>
+    <title>Noor Alfath Technical Services LLC — Local Purchase Order — {{ $lpo->lpo_number ?? 'LPO' }} — View.pdf</title>
     <meta name="author" content="Ysa" />
     <meta name="keywords" content="DAGswAfis2s,BAGGPga4JjE,01" />
     <style type="text/css">
@@ -199,11 +199,7 @@
 <body style="margin:30px">
     <div >
         <h1 style="padding-top: 30px;float: left;padding-left: 7pt;text-indent: 0pt;text-align: left;">
-            @if(isset($type) && $type === 'payment_receipt')
-                PAYMENT RECEIPT
-            @else
-                TAX INVOICE
-            @endif
+            Local Purchase Order
         </h1>
 
         <p style="text-indent: 0pt;text-align: right;">
@@ -221,28 +217,28 @@
 
     <table style="width: 100%; border-collapse: collapse; margin-top:10px">
         <tr>
-            <!-- Left: Client Information -->
+            <!-- Left: Vendor Information -->
             <td style="width: 50%; vertical-align: top;line-height: 13px">
-                <h3 style="padding-top: 3pt; padding-left: 6pt; text-align: left;">{{ $invoice->client->name ?? 'Al Rasasi Trading Company L.L.C' }}</h3>
-                <p style="padding-left: 6pt; text-align: left;">{{ $invoice->client->address ?? 'P.O. Box 1294, Dubai, UAE TEL : 2263700, FAX : 2267821' }}</p>
-                <p style="padding-left: 6pt; text-align: left;">{{ $invoice->client->company ?? 'Jebel Ali (Dubai)' }}</p>
+                <h3 style="padding-top: 3pt; padding-left: 6pt; text-align: left;">{{ $lpo->vendor->name ?? 'Vendor Name' }}</h3>
+                <p style="padding-left: 6pt; text-align: left;">{{ $lpo->vendor->address ?? 'Vendor Address' }}</p>
+                <p style="padding-left: 6pt; text-align: left;">{{ $lpo->vendor->contact_number ?? 'Contact Number' }}</p>
                 <br>
-                @if($invoice->client->trn_number != '')
-                    <p style="padding-left: 6pt; text-align: left;">TRN: {{ $invoice->client->trn_number }}</p>
+                @if($lpo->vendor->trn_number ?? false)
+                    <p style="padding-left: 6pt; text-align: left;">TRN: {{ $lpo->vendor->trn_number }}</p>
                 @endif
-                @if($invoice->po_number != '')
-                    <p style="padding-left: 6pt; text-align: left;">Purchase Order No: {{ $invoice->po_number }}</p>
-                @endif
+               
             </td>
 
             <!-- Middle: Issue Date -->
             <td style="width: 40%;vertical-align: top;border-right: 1px solid black;padding-right: 10px;padding-left: 100px;">
                 <h3 style="padding-top: 3pt; text-align: right;">Issue date</h3>
-                <p style="text-align: right;">{{ \Carbon\Carbon::parse($invoice->issue_date)->format('d/m/Y') }}</p>
-                <h3 style="padding-top: 5pt; text-align: right;">Expiry date</h3>
-                <p style="text-align: right;">{{ \Carbon\Carbon::parse($schedule->due_date)->format('d/m/Y') }}</p>
-                <h3 style="padding-top: 5pt; text-align: right;">Reference</h3>
-                <p style="text-align: right;">{{ $invoice->invoice_number }}</p>
+                <p style="text-align: right;">{{ \Carbon\Carbon::parse($lpo->issue_date)->format('d/m/Y') }}</p>
+                <h3 style="padding-top: 5pt; text-align: right;">LPO Number</h3>
+                <p style="text-align: right;">{{ $lpo->lpo_number }}</p>
+                @if($lpo->subject)
+                <h3 style="padding-top: 5pt; text-align: right;">Subject</h3>
+                <p style="text-align: right;">{{ $lpo->subject }}</p>
+                @endif
             </td>
 
             <!-- Right: NOOR ALFATH TECHNICAL SERVICES -->
@@ -262,154 +258,135 @@
     
     <p style="text-indent: 0pt;text-align: left; margin-top: 10px;"><br /></p>
     <h2 style="padding-left: 6pt;text-indent: 0pt;text-align: left;">
-        {{ $invoice->project->name ?? ($invoice->client->name . ' | ' . ($invoice->notes ? Str::limit($invoice->notes, 50) : 'INVOICE')) }}
+        {{ $lpo->description ?? 'Please deliver the items as per the specifications below.' }}
     </h2>
     <p style="text-indent: 0pt;text-align: left;"><br /></p>
     <table style="border-collapse:collapse;margin-left:7.2004pt" cellspacing="0">
         <tr style="height:24pt">
             <td
-                style="width:44pt;border-top-style:solid;border-top-width:1pt;border-left-style:solid;border-left-width:1pt;border-bottom-style:solid;border-bottom-width:1pt;border-right-style:solid;border-right-width:1pt">
+                style="width:35pt;border-top-style:solid;border-top-width:1pt;border-left-style:solid;border-left-width:1pt;border-bottom-style:solid;border-bottom-width:1pt;border-right-style:solid;border-right-width:1pt">
                 <p class="s2" style="padding-top: 2pt;text-indent: 0pt;text-align: center;">#</p>
             </td>
             <td
-                style="width:198pt;border-top-style:solid;border-top-width:1pt;border-left-style:solid;border-left-width:1pt;border-bottom-style:solid;border-bottom-width:1pt;border-right-style:solid;border-right-width:1pt">
+                style="width:160pt;border-top-style:solid;border-top-width:1pt;border-left-style:solid;border-left-width:1pt;border-bottom-style:solid;border-bottom-width:1pt;border-right-style:solid;border-right-width:1pt">
                 <p class="s2" style="padding-top: 2pt;padding-left: 5pt;text-indent: 0pt;text-align: left;">Description
                 </p>
             </td>
             <td
-                style="width:44pt;border-top-style:solid;border-top-width:1pt;border-left-style:solid;border-left-width:1pt;border-bottom-style:solid;border-bottom-width:1pt;border-right-style:solid;border-right-width:1pt">
+                style="width:35pt;border-top-style:solid;border-top-width:1pt;border-left-style:solid;border-left-width:1pt;border-bottom-style:solid;border-bottom-width:1pt;border-right-style:solid;border-right-width:1pt">
+                <p class="s2" style="padding-top: 2pt;text-indent: 0pt;text-align: center;">Unit</p>
+            </td>
+            <td
+                style="width:35pt;border-top-style:solid;border-top-width:1pt;border-left-style:solid;border-left-width:1pt;border-bottom-style:solid;border-bottom-width:1pt;border-right-style:solid;border-right-width:1pt">
                 <p class="s2" style="padding-top: 2pt;text-indent: 0pt;text-align: center;">Qty</p>
             </td>
             <td
-                style="width:44pt;border-top-style:solid;border-top-width:1pt;border-left-style:solid;border-left-width:1pt;border-bottom-style:solid;border-bottom-width:1pt;border-right-style:solid;border-right-width:1pt">
+                style="width:40pt;border-top-style:solid;border-top-width:1pt;border-left-style:solid;border-left-width:1pt;border-bottom-style:solid;border-bottom-width:1pt;border-right-style:solid;border-right-width:1pt">
                 <p class="s3"
-                    style="padding-top: 1pt;padding-left: 16pt;padding-right: 8pt;text-indent: 2pt;text-align: left;">
+                    style="padding-top: 1pt;padding-left: 8pt;padding-right: 4pt;text-indent: 0pt;text-align: left;">
                     Unit price</p>
             </td>
             <td
-                style="width:43pt;border-top-style:solid;border-top-width:1pt;border-left-style:solid;border-left-width:1pt;border-bottom-style:solid;border-bottom-width:1pt;border-right-style:solid;border-right-width:1pt">
-                <p class="s2" style="padding-top: 2pt;padding-right: 5pt;text-indent: 0pt;text-align: right;">Amount</p>
+                style="width:40pt;border-top-style:solid;border-top-width:1pt;border-left-style:solid;border-left-width:1pt;border-bottom-style:solid;border-bottom-width:1pt;border-right-style:solid;border-right-width:1pt">
+                <p class="s2" style="padding-top: 2pt;padding-right: 2pt;text-indent: 0pt;text-align: right;">Amount</p>
             </td>
             <td
-                style="width:44pt;border-top-style:solid;border-top-width:1pt;border-left-style:solid;border-left-width:1pt;border-bottom-style:solid;border-bottom-width:1pt;border-right-style:solid;border-right-width:1pt">
+                style="width:35pt;border-top-style:solid;border-top-width:1pt;border-left-style:solid;border-left-width:1pt;border-bottom-style:solid;border-bottom-width:1pt;border-right-style:solid;border-right-width:1pt">
                 <p class="s2" style="padding-top: 2pt;text-indent: 0pt;text-align: center;">Tax</p>
             </td>
             <td
-                style="width:44pt;border-top-style:solid;border-top-width:1pt;border-left-style:solid;border-left-width:1pt;border-bottom-style:solid;border-bottom-width:1pt;border-right-style:solid;border-right-width:1pt">
+                style="width:40pt;border-top-style:solid;border-top-width:1pt;border-left-style:solid;border-left-width:1pt;border-bottom-style:solid;border-bottom-width:1pt;border-right-style:solid;border-right-width:1pt">
                 <p class="s3"
-                    style="padding-top: 1pt;padding-left: 10pt;padding-right: 3pt;text-indent: 10pt;text-align: left;">
+                    style="padding-top: 1pt;padding-left: 5pt;padding-right: 2pt;text-indent: 0pt;text-align: left;">
                     Tax Amount</p>
             </td>
             <td
-                style="width:61pt;border-top-style:solid;border-top-width:1pt;border-left-style:solid;border-left-width:1pt;border-bottom-style:solid;border-bottom-width:1pt;border-right-style:solid;border-right-width:1pt">
+                style="width:50pt;border-top-style:solid;border-top-width:1pt;border-left-style:solid;border-left-width:1pt;border-bottom-style:solid;border-bottom-width:1pt;border-right-style:solid;border-right-width:1pt">
                 <p class="s2" style="padding-top: 2pt;padding-left: 38pt;text-indent: 0pt;text-align: left;">Total</p>
             </td>
         </tr>
         
-        @foreach($invoice->items as $index => $item)
+        @foreach($lpo->items as $index => $item)
         <tr style="height:34pt">
-            <td style="width:44pt;border-top-style:solid;border-top-width:1pt;border-left-style:solid;border-left-width:1pt;border-right-style:solid;border-right-width:1pt">
+            <td style="width:35pt;border-top-style:solid;border-top-width:1pt;border-left-style:solid;border-left-width:1pt;border-right-style:solid;border-right-width:1pt">
                 <p class="s4" style="padding-top: 1pt;text-indent: 0pt;text-align: center;">{{ $index + 1 }}</p>
             </td>
-            <td style="width:198pt;border-top-style:solid;border-top-width:1pt;border-left-style:solid;border-left-width:1pt;border-right-style:solid;border-right-width:1pt">
-                <p class="s4" style="padding-top: 1pt;padding-left: 5pt;padding-right: 11pt;text-indent: 0pt;text-align: left;">
+            <td style="width:160pt;border-top-style:solid;border-top-width:1pt;border-left-style:solid;border-left-width:1pt;border-right-style:solid;border-right-width:1pt">
+                <p class="s4" style="padding-top: 1pt;padding-left: 5pt;padding-right: 5pt;text-indent: 0pt;text-align: left;">
                     {{ $item->description ?? $item->product->name ?? 'Item' }}
                 </p>
             </td>
-            <td style="width:44pt;border-top-style:solid;border-top-width:1pt;border-left-style:solid;border-left-width:1pt;border-right-style:solid;border-right-width:1pt">
+            <td style="width:35pt;border-top-style:solid;border-top-width:1pt;border-left-style:solid;border-left-width:1pt;border-right-style:solid;border-right-width:1pt">
+                <p class="s4" style="padding-top: 1pt;text-indent: 0pt;text-align: center;">{{ $item->unit ?? 'pcs' }}</p>
+            </td>
+            <td style="width:35pt;border-top-style:solid;border-top-width:1pt;border-left-style:solid;border-left-width:1pt;border-right-style:solid;border-right-width:1pt">
                 <p class="s4" style="padding-top: 1pt;text-indent: 0pt;text-align: center;">{{ $item->quantity }}</p>
             </td>
-            <td style="width:44pt;border-top-style:solid;border-top-width:1pt;border-left-style:solid;border-left-width:1pt;border-right-style:solid;border-right-width:1pt">
-                <p class="s5" style="padding-top: 1pt;padding-right: 3pt;text-indent: 0pt;text-align: right;">{{ number_format($item->unit_price, 2) }}</p>
+            <td style="width:40pt;border-top-style:solid;border-top-width:1pt;border-left-style:solid;border-left-width:1pt;border-right-style:solid;border-right-width:1pt">
+                <p class="s5" style="padding-top: 1pt;padding-right: 2pt;text-indent: 0pt;text-align: right;">{{ number_format($item->unit_price, 2) }}</p>
             </td>
-            <td style="width:43pt;border-top-style:solid;border-top-width:1pt;border-left-style:solid;border-left-width:1pt;border-right-style:solid;border-right-width:1pt">
-                <p class="s4" style="padding-top: 1pt;padding-right: 4pt;text-indent: 0pt;text-align: right;">{{ number_format($item->total_price, 2) }}</p>
+            <td style="width:40pt;border-top-style:solid;border-top-width:1pt;border-left-style:solid;border-left-width:1pt;border-right-style:solid;border-right-width:1pt">
+                <p class="s4" style="padding-top: 1pt;padding-right: 2pt;text-indent: 0pt;text-align: right;">{{ number_format($item->total_price_before_tax, 2) }}</p>
             </td>
-            <td style="width:44pt;border-top-style:solid;border-top-width:1pt;border-left-style:solid;border-left-width:1pt;border-right-style:solid;border-right-width:1pt">
-                <p class="s4" style="padding-top: 1pt;padding-left: 8pt;text-indent: 0pt;text-align: left;">VAT {{ $item->vat_rate }}%</p>
+            <td style="width:35pt;border-top-style:solid;border-top-width:1pt;border-left-style:solid;border-left-width:1pt;border-right-style:solid;border-right-width:1pt">
+                <p class="s4" style="padding-top: 1pt;padding-left: 2pt;text-indent: 0pt;text-align: left;">VAT {{ $item->tax_rate }}%</p>
             </td>
-            <td style="width:44pt;border-top-style:solid;border-top-width:1pt;border-left-style:solid;border-left-width:1pt;border-right-style:solid;border-right-width:1pt">
-                <p class="s5" style="padding-top: 1pt;padding-left: 8pt;text-indent: 0pt;text-align: left;">{{ number_format($item->total_price_w_tax - $item->total_price, 2) }}</p>
+            <td style="width:40pt;border-top-style:solid;border-top-width:1pt;border-left-style:solid;border-left-width:1pt;border-right-style:solid;border-right-width:1pt">
+                <p class="s5" style="padding-top: 1pt;padding-left: 2pt;text-indent: 0pt;text-align: left;">{{ number_format($item->total_price_after_tax - $item->total_price_before_tax, 2) }}</p>
             </td>
-            <td style="width:61pt;border-top-style:solid;border-top-width:1pt;border-left-style:solid;border-left-width:1pt;border-right-style:solid;border-right-width:1pt">
-                <p class="s4" style="padding-top: 1pt;padding-left: 23pt;text-indent: 0pt;text-align: left;">{{ number_format($item->total_price_w_tax, 2) }}</p>
+            <td style="width:50pt;border-top-style:solid;border-top-width:1pt;border-left-style:solid;border-left-width:1pt;border-right-style:solid;border-right-width:1pt">
+                <p class="s4" style="padding-top: 1pt;padding-left: 15pt;text-indent: 0pt;text-align: left;">{{ number_format($item->total_price_after_tax, 2) }}</p>
             </td>
         </tr>
         @endforeach
   
         
         <tr style="height:14pt">
-            <td style="width:461pt;border-top-style:solid;border-top-width:1pt;border-right-style:solid;border-right-width:1pt"
-                colspan="7">
+            <td style="width:420pt;border-top-style:solid;border-top-width:1pt;border-right-style:solid;border-right-width:1pt"
+                colspan="8">
                 <p class="s6" style="padding-top: 1pt;padding-right: 4pt;text-indent: 0pt;text-align: right;"><span
                         class="s5">Sub-total</span></p>
             </td>
             <td
-                style="width:61pt;border-top-style:solid;border-top-width:1pt;border-left-style:solid;border-left-width:1pt;border-bottom-style:solid;border-bottom-width:1pt;border-right-style:solid;border-right-width:1pt">
+                style="width:50pt;border-top-style:solid;border-top-width:1pt;border-left-style:solid;border-left-width:1pt;border-bottom-style:solid;border-bottom-width:1pt;border-right-style:solid;border-right-width:1pt">
                 <p class="s4" style="padding-top: 1pt;padding-left: 7pt;text-indent: 0pt;text-align: left;">AED
-                    {{ number_format($invoice->subtotal ?? $invoice->items->sum('total_price'), 2) }}</p>
+                    {{ number_format($lpo->subtotal ?? $lpo->items->sum('total_price_before_tax'), 2) }}</p>
             </td>
         </tr>
         <tr style="height:15pt">
-            <td style="width:461pt;border-right-style:solid;border-right-width:1pt" colspan="7">
+            <td style="width:420pt;border-right-style:solid;border-right-width:1pt" colspan="8">
                 <p class="s6" style="padding-top: 1pt;padding-right: 4pt;text-indent: 0pt;text-align: right;"><span
                         class="s4">VAT 5%</span></p>
             </td>
             <td
-                style="width:61pt;border-top-style:solid;border-top-width:1pt;border-left-style:solid;border-left-width:1pt;border-bottom-style:solid;border-bottom-width:1pt;border-right-style:solid;border-right-width:1pt">
+                style="width:50pt;border-top-style:solid;border-top-width:1pt;border-left-style:solid;border-left-width:1pt;border-bottom-style:solid;border-bottom-width:1pt;border-right-style:solid;border-right-width:1pt">
                 <p class="s4" style="padding-top: 1pt;padding-left: 11pt;text-indent: 0pt;text-align: left;">AED
-                    {{ number_format($invoice->tax_amount ?? ($invoice->items->sum('total_price_w_tax') - $invoice->items->sum('total_price')), 2) }}</p>
+                    {{ number_format($lpo->total_tax ?? ($lpo->items->sum('total_price_after_tax') - $lpo->items->sum('total_price_before_tax')), 2) }}</p>
             </td>
         </tr>
         <tr style="height:15pt">
-            <td style="width:461pt;border-right-style:solid;border-right-width:1pt" colspan="7">
+            <td style="width:420pt;border-right-style:solid;border-right-width:1pt" colspan="8">
                 <p class="s7" style="padding-top: 2pt;padding-right: 4pt;text-indent: 0pt;text-align: right;"><span
                         class="s2">Total</span></p>
             </td>
             <td
-                style="width:61pt;border-top-style:solid;border-top-width:1pt;border-left-style:solid;border-left-width:1pt;border-bottom-style:solid;border-bottom-width:2pt;border-right-style:solid;border-right-width:1pt">
+                style="width:50pt;border-top-style:solid;border-top-width:1pt;border-left-style:solid;border-left-width:1pt;border-bottom-style:solid;border-bottom-width:2pt;border-right-style:solid;border-right-width:1pt">
                 <p class="s3" style="padding-top: 2pt;padding-left: 5pt;text-indent: 0pt;text-align: left;">AED
-                    {{ number_format($invoice->total_amount, 2) }}</p>
+                    {{ number_format($lpo->total_after_tax, 2) }}</p>
+                    {{-- {{ number_format($quotation->total_amount, 2) }}</p> --}}
             </td>
         </tr>
-        {{-- @if(count($invoice->paymentSchedules) > 1) --}}
-        <tr style="height:16pt">
-            <td style="width:461pt;border-right-style:solid;border-right-width:1pt" colspan="7">
-                <p class="s8" style="padding-top: 5pt;padding-right: 2pt;text-indent: 0pt;text-align: right;">
-                    {{ fmod($schedule->percentage, 1) == 0 ? number_format($schedule->percentage, 0) : number_format($schedule->percentage, 2) }}%
-                    Payment — {{ \Carbon\Carbon::parse('now')->format('d/m/Y') }}</p>
-                </p>
-            </td>
-            <td
-                style="width:61pt;border-top-style:solid;border-top-width:2pt;border-left-style:solid;border-left-width:1pt;border-bottom-style:solid;border-bottom-width:1pt;border-right-style:solid;border-right-width:1pt">
-                <p class="s3" style="padding-top: 4pt;padding-left: 5pt;text-indent: 0pt;text-align: left;">AED
-                    {{ number_format($schedule->amount, 2) }}</p>
-            </td>
-        </tr>
-        <tr style="height:16pt">
-            <td style="width:461pt;border-right-style:solid;border-right-width:1pt" colspan="7">
-                <p class="s9" style="padding-top: 3pt;padding-right: 1pt;text-indent: 0pt;text-align: right;">Due
-                    Balance</p>
-            </td>
-            <td
-                style="width:61pt;border-top-style:solid;border-top-width:1pt;border-left-style:solid;border-left-width:1pt;border-bottom-style:solid;border-bottom-width:1pt;border-right-style:solid;border-right-width:1pt">
-                <p class="s9" style="padding-top: 2pt;padding-left: 4pt;text-indent: 0pt;text-align: left;">AED
-                   {{ number_format($invoice->balance_due, 2) }}  </p>
-            </td>
-        </tr>
-        {{-- @endif --}}
+        
     </table>
-    {{-- @if(count($invoice->paymentSchedules) > 1) --}}
-    <h3 style="padding-left: 6pt;text-indent: 0pt;text-align: left;">PAYMENT TERMS:</h3>
-    <p class="s10" style="padding-left: 6pt;text-indent: 0pt;line-height: 115%;text-align: left;">{{ implode(', ', $invoice->paymentSchedules->pluck('description')->toArray()) }}</p>
+    {{-- @if(count($quotation->paymentSchedules) > 1) --}}
+
     {{-- @endif --}}
     <p style="text-indent: 0pt;text-align: left;"><br /></p>
-    <p class="s11" style="padding-top: 3pt;padding-left: 5pt;text-indent: 0pt;text-align: left;">BANK DETAILS:&nbsp;</p>
+    {{-- <p class="s11" style="padding-top: 3pt;padding-left: 5pt;text-indent: 0pt;text-align: left;">BANK DETAILS:&nbsp;</p>
     <h3 style="padding-left: 5pt;text-indent: 0pt;text-align: left;">Account Title: {{ $company->bank_details['account_holder'] }}
         . <br> Account #:  {{ $company->bank_details['account_number'] }}</h3>
     <h3 style="padding-left: 5pt;text-indent: 0pt;line-height: 112%;text-align: left;">IBAN #: {{ $company->bank_details['iban_number'] }}
-        <br> SWIFT CODE: {{ $company->bank_details['swift_code'] }}</h3>
-    
+        <br> SWIFT CODE: {{ $company->bank_details['swift_code'] }}</h3> --}}
     <table style="width: 100%; margin-top: 30px;">
         <tr>
             <td style="width: 55%; vertical-align: top; text-align: left;">

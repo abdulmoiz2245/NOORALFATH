@@ -5,30 +5,24 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
-class QuotationItem extends Model
+class LocalPurchaseOrderItem extends Model
 {
-
+    protected $table = 'local_purchase_order_items';
     protected $fillable = [
-        'quotation_id',
+        'local_purchase_order_id',
         'product_id',
         'description',
         'unit',
         'quantity',
         'unit_price',
         'tax_rate',
-        'total_price',
+        'total_price_before_tax',
+        'total_price_after_tax',
     ];
 
-    protected $casts = [
-        'quantity' => 'decimal:2',
-        'unit_price' => 'decimal:2',
-        'tax_rate' => 'decimal:2',
-        'total_price' => 'decimal:2',
-    ];
-
-    public function quotation(): BelongsTo
+    public function localPurchaseOrder(): BelongsTo
     {
-        return $this->belongsTo(Quotation::class);
+        return $this->belongsTo(LocalPurchaseOrder::class, 'local_purchase_order_id');
     }
 
     public function product(): BelongsTo
