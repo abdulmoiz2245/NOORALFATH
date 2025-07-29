@@ -385,7 +385,7 @@
             </td>
             <!-- Stamp section -->
             <td style="text-align: right; vertical-align: bottom;">
-                <table border="0" cellspacing="0" cellpadding="0" style="margin-left: auto;">
+                <table border="0" cellspacing="0" cellpadding="0" style="margin-left: auto;margin-top:20px">
                     <tr>
                         <td>
                         <img width="88" height="94"
