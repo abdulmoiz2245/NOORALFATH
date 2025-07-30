@@ -18,7 +18,7 @@ interface Client {
     name: string;
 }
 
-defineProps<{
+const props = defineProps<{
     clients: Client[];
     serviceReportNumber: string;
 }>();
@@ -39,18 +39,78 @@ const breadcrumbs: BreadcrumbItem[] = [
 ];
 
 const form = useForm({
+    service_report_number: props.serviceReportNumber,
     client_id: '',
     service_date: new Date().toISOString().split('T')[0],
-    ac_work: false,
-    plumbing_work: false,
-    paint_work: false,
-    electrical_work: false,
-    civil_work: false,
+    ac_work: false as boolean,
+    plumbing_work: false as boolean,
+    paint_work: false as boolean,
+    electrical_work: false as boolean,
+    civil_work: false as boolean,
     job_details: '',
+    before_pictures: [] as File[],
+    after_pictures: [] as File[],
 });
 
 const submit = () => {
-    form.post('/service-reports');
+    // Debug: Log form data before submission
+    console.log('Form data being submitted:', {
+        service_report_number: form.service_report_number,
+        client_id: form.client_id,
+        service_date: form.service_date,
+        ac_work: form.ac_work,
+        plumbing_work: form.plumbing_work,
+        paint_work: form.paint_work,
+        electrical_work: form.electrical_work,
+        civil_work: form.civil_work,
+        job_details: form.job_details,
+        before_pictures: form.before_pictures.length,
+        after_pictures: form.after_pictures.length,
+    });
+    
+    // Transform the form data to send proper checkbox values
+    form.transform((data) => ({
+        ...data,
+        ac_work: data.ac_work ? '1' : '0',
+        plumbing_work: data.plumbing_work ? '1' : '0',
+        paint_work: data.paint_work ? '1' : '0',
+        electrical_work: data.electrical_work ? '1' : '0',
+        civil_work: data.civil_work ? '1' : '0',
+    }));
+    
+    form.post('/service-reports', {
+        forceFormData: true,
+        onSuccess: () => {
+            console.log('Form submitted successfully');
+        },
+        onError: (errors) => {
+            console.log('Form submission errors:', errors);
+        }
+    });
+};
+
+const handleBeforePictureChange = (event: Event) => {
+    const target = event.target as HTMLInputElement;
+    if (target.files) {
+        const files = Array.from(target.files).slice(0, 4);
+        form.before_pictures = files;
+    }
+};
+
+const handleAfterPictureChange = (event: Event) => {
+    const target = event.target as HTMLInputElement;
+    if (target.files) {
+        const files = Array.from(target.files).slice(0, 4);
+        form.after_pictures = files;
+    }
+};
+
+const removeBeforePicture = (index: number) => {
+    form.before_pictures = form.before_pictures.filter((_, i) => i !== index);
+};
+
+const removeAfterPicture = (index: number) => {
+    form.after_pictures = form.after_pictures.filter((_, i) => i !== index);
 };
 </script>
 
@@ -87,7 +147,7 @@ const submit = () => {
                                 <Label for="service_report_number">Service Report Number</Label>
                                 <Input
                                     id="service_report_number"
-                                    :value="serviceReportNumber"
+                                    v-model="form.service_report_number"
                                     type="text"
                                     class="bg-muted"
                                     readonly
@@ -129,35 +189,40 @@ const submit = () => {
                                     <div class="flex items-center space-x-2">
                                         <Checkbox 
                                             id="ac_work"
-                                            v-model:checked="form.ac_work"
+                                            :model-value="form.ac_work"
+                                            @update:model-value="(value: boolean | 'indeterminate') => form.ac_work = value === true"
                                         />
                                         <Label for="ac_work" class="text-sm font-normal">A/C Work</Label>
                                     </div>
                                     <div class="flex items-center space-x-2">
                                         <Checkbox 
                                             id="plumbing_work"
-                                            v-model:checked="form.plumbing_work"
+                                            :model-value="form.plumbing_work"
+                                            @update:model-value="(value: boolean | 'indeterminate') => form.plumbing_work = value === true"
                                         />
                                         <Label for="plumbing_work" class="text-sm font-normal">Plumbing</Label>
                                     </div>
                                     <div class="flex items-center space-x-2">
                                         <Checkbox 
                                             id="paint_work"
-                                            v-model:checked="form.paint_work"
+                                            :model-value="form.paint_work"
+                                            @update:model-value="(value: boolean | 'indeterminate') => form.paint_work = value === true"
                                         />
                                         <Label for="paint_work" class="text-sm font-normal">Paint Work</Label>
                                     </div>
                                     <div class="flex items-center space-x-2">
                                         <Checkbox 
                                             id="electrical_work"
-                                            v-model:checked="form.electrical_work"
+                                            :model-value="form.electrical_work"
+                                            @update:model-value="(value: boolean | 'indeterminate') => form.electrical_work = value === true"
                                         />
                                         <Label for="electrical_work" class="text-sm font-normal">Electrical Work</Label>
                                     </div>
                                     <div class="flex items-center space-x-2">
                                         <Checkbox 
                                             id="civil_work"
-                                            v-model:checked="form.civil_work"
+                                            :model-value="form.civil_work"
+                                            @update:model-value="(value: boolean | 'indeterminate') => form.civil_work = value === true"
                                         />
                                         <Label for="civil_work" class="text-sm font-normal">Civil Work</Label>
                                     </div>
@@ -175,6 +240,68 @@ const submit = () => {
                                     :class="{ 'border-red-500': form.errors.job_details }"
                                 />
                                 <InputError :message="form.errors.job_details" />
+                            </div>
+
+                            <!-- Before Pictures -->
+                            <div class="space-y-2 md:col-span-1">
+                                <Label for="before_pictures">Before Pictures (Max 4)</Label>
+                                <Input
+                                    id="before_pictures"
+                                    type="file"
+                                    multiple
+                                    accept="image/jpeg,image/jpg,image/png"
+                                    @change="handleBeforePictureChange"
+                                    :class="{ 'border-red-500': form.errors.before_pictures }"
+                                />
+                                <InputError :message="form.errors.before_pictures" />
+                                <div v-if="form.before_pictures.length > 0" class="mt-2">
+                                    <p class="text-sm text-muted-foreground mb-2">Selected files:</p>
+                                    <div class="space-y-1">
+                                        <div v-for="(file, index) in form.before_pictures" :key="index" 
+                                             class="flex items-center justify-between text-sm bg-muted p-2 rounded">
+                                            <span>{{ file.name }}</span>
+                                            <Button 
+                                                type="button" 
+                                                variant="ghost" 
+                                                size="sm" 
+                                                @click="removeBeforePicture(index)"
+                                            >
+                                                ×
+                                            </Button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- After Pictures -->
+                            <div class="space-y-2 md:col-span-1">
+                                <Label for="after_pictures">After Pictures (Max 4)</Label>
+                                <Input
+                                    id="after_pictures"
+                                    type="file"
+                                    multiple
+                                    accept="image/jpeg,image/jpg,image/png"
+                                    @change="handleAfterPictureChange"
+                                    :class="{ 'border-red-500': form.errors.after_pictures }"
+                                />
+                                <InputError :message="form.errors.after_pictures" />
+                                <div v-if="form.after_pictures.length > 0" class="mt-2">
+                                    <p class="text-sm text-muted-foreground mb-2">Selected files:</p>
+                                    <div class="space-y-1">
+                                        <div v-for="(file, index) in form.after_pictures" :key="index" 
+                                             class="flex items-center justify-between text-sm bg-muted p-2 rounded">
+                                            <span>{{ file.name }}</span>
+                                            <Button 
+                                                type="button" 
+                                                variant="ghost" 
+                                                size="sm" 
+                                                @click="removeAfterPicture(index)"
+                                            >
+                                                ×
+                                            </Button>
+                                        </div>
+                                    </div>
+                                </div>
                             </div>
                         </div>
 

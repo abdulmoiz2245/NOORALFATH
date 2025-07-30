@@ -3,7 +3,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
 
 <head>
-    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <meta http-equiv="Content-Type" charset=utf-8" />
     <title>Noor Alfath Technical Services LLC — Purchase Order</title>
     <meta name="author" content="Ysa" />
     <meta name="keywords" content="DAGswAfis2s,BAGGPga4JjE,01" />
@@ -285,10 +285,45 @@
 
     
     <p style="text-indent: 0pt;text-align: left; margin-top: 10px;"><br /></p>
-    <h2 style="padding-left: 6pt;text-indent: 0pt;text-align: center; font-size:25px;margin-top: 40px; margin-bottom: 40px;">
+    <h2 style="padding-left: 6pt;text-indent: 0pt;text-align: center; font-size:25px;margin-top: 10px; margin-bottom: 40px;">
        Service Report
     </h2>
     <p style="text-indent: 0pt;text-align: left;"><br /></p>
+    <table style="width: 100%; border-collapse: collapse; margin-top:10px;margin-bottom: 20px;">
+        <tr>
+            <td style="width: 70%; vertical-align: top; line-height: 12px;">
+                <table style="width: 100%; border-collapse: collapse;">
+                    <tr>
+                        <td style="padding: 3pt 6pt 0 6pt; text-align: left; white-space: nowrap;"><p style="font-size: 13px; font-weight: bold;">Client</p></td>
+                        <td style="padding: 3pt 6pt 0 6pt; text-align: left;"><p style="font-size: 13px;"> : &nbsp;&nbsp;</p></td>
+                        <td style="padding: 3pt 6pt 0 6pt; text-align: left;"><p style="font-size: 13px;">{{ $serviceReport->client->name }}</p></td>       
+                        <td style="padding: 3pt 6pt 0 6pt; text-align: left; white-space: nowrap;"><p style="font-size: 13px; font-weight: bold;">TRN</p></td>         
+                        <td style="padding: 3pt 6pt 0 6pt; text-align: left;"><p style="font-size: 13px;"> : &nbsp;&nbsp;</p></td>
+                        <td style="padding: 3pt 6pt 0 6pt; text-align: left;"><p style="font-size: 13px;">{{ $serviceReport->client->trn_number }}</p></td>
+                    </tr>
+                    <tr>
+                        <td style="padding: 3pt 6pt 0 6pt; text-align: left; white-space: nowrap;"><p style="font-size: 13px;font-weight: bold">Address</p></td>
+                        <td style="padding: 3pt 6pt 0 6pt; text-align: left;"><p style="font-size: 13px;"> : &nbsp;&nbsp;</p></td>
+                        <td style="padding: 3pt 6pt 0 6pt; text-align: left;"><p style="font-size: 13px;">{{ $serviceReport->client->address }}</p></td>    
+                        <td style="padding: 3pt 6pt 0 6pt; text-align: left; white-space: nowrap;"><p style="font-size: 13px;font-weight: bold">Phone</p></td>
+                        <td style="padding: 3pt 6pt 0 6pt; text-align: left;"><p style="font-size: 13px;"> : &nbsp;&nbsp;</p></td>
+                        <td style="padding: 3pt 6pt 0 6pt; text-align: left;"><p style="font-size: 13px;">{{ $serviceReport->client->phone }}</p></td>
+                    </tr>
+                    <tr>
+                        <td style="padding: 3pt 6pt 0 6pt; text-align: left; white-space: nowrap;"><p style="font-size: 13px;font-weight: bold">Email</p></td>
+                        <td style="padding: 3pt 6pt 0 6pt; text-align: left;"><p style="font-size: 13px;"> : &nbsp;&nbsp;</p></td>
+                        <td style="padding: 3pt 6pt 0 6pt; text-align: left;"><p style="font-size: 13px;">{{ $serviceReport->client->email }}</p></td>
+                        {{-- <td style="padding: 3pt 6pt 0 6pt; text-align: left; white-space: nowrap;"><p style="font-size: 13px;font-weight: bold">Service Report No.</p></td>
+                        <td style="padding: 3pt 6pt 0 6pt; text-align: left;"><p style="font-size: 13px;"> : &nbsp;&nbsp;</p></td>
+                        <td style="padding: 3pt 6pt 0 6pt; text-align: left;"><p style="font-size: 13px;">{{ $serviceReport->report_number }}</p></td> --}}
+                    </tr>
+                </table>
+            </td>
+            <td style="width: 30%; vertical-align: top; line-height: 12px; padding-left: 20px;">
+                
+            </td>
+        </tr>
+    </table>
     <table style="width: 100%; border-collapse: collapse; ;">
         <tr>
             <td style="width: 20%; padding-left: 5pt; text-align: left; ">
@@ -298,50 +333,139 @@
                 <table>
                     <tr>
                         <td>
-                            <input type="checkbox"> <span style="
-                                margin-bottom: 7px;
-                                height: 23px;
-                                display: block;
-                                width: fit-content;
-                                float: left;
-                                margin-right: 10px;
-                            ">
+                            <input type="checkbox" {{ $serviceReport->ac_work ? 'checked' : '' }}> 
                         </td>
                         <td>
-                            <p style="margin: 0;"><label style="margin-bottom: 13px;display: inline;; font-size:12px;padding-left:5px">A/C WORK</label></span></p>
+                            <p style="margin: 0;" style="display: inline; font-size:13px;padding-left:5px">A/C WORK</p>
                         </td>
                     </tr>
                 </table>
             </td>
             <td style="width: 10%; padding-left: 5pt; text-align: left; ">
-                <p style="margin: 0;"><input type="checkbox"> <span style="
-                    margin-bottom: 7px;
-                    height: 23px;
-                    display: block;
-                    width: fit-content;
-                    float: left;
-                    margin-right: 10px;
-                "><label style="margin-bottom: 13px;display: inline;; font-size:12px;padding-left:5px">Electrical</label></span></p>
+                <table>
+                    <tr>
+                        <td>
+                            <input type="checkbox" {{ $serviceReport->electrical_work ? 'checked' : '' }}> 
+                        </td>
+                        <td>
+                            <p style="margin: 0; display: inline; font-size:13px;padding-left:5px">Electrical</p>
+                        </td>
+                    </tr>
+                </table>
             </td>
             <td style="width: 10%; padding-left: 5pt; text-align: left; ">
-                <p style="margin: 0;"><input type="checkbox"> <label style="margin-bottom: 13px;display: inline;; font-size:12px;padding-left:5px">Plumbing</label></p>
+                <table>
+                    <tr>
+                        <td>
+                            <input type="checkbox" {{ $serviceReport->plumbing_work ? 'checked' : '' }}> 
+                        </td>
+                        <td>
+                            <p style="margin: 0; display: inline; font-size:13px;padding-left:5px">Plumbing</p>
+                        </td>
+                    </tr>
+                </table>
             </td>
             <td style="width: 10%; padding-left: 5pt; text-align: left; ">
-                <p style="margin: 0;"><input type="checkbox"> <label style="margin-bottom: 13px;display: inline;; font-size:12px;padding-left:5px">Painting</label></p>
+                <table>
+                    <tr>
+                        <td>
+                            <input type="checkbox" {{ $serviceReport->paint_work ? 'checked' : '' }}> 
+                        </td>
+                        <td>
+                            <p style="margin: 0; display: inline; font-size:13px;padding-left:5px">Painting</p>
+                        </td>
+                    </tr>
+                </table>
+            </td>
+            <td style="width: 10%; padding-left: 5pt; text-align: left; ">
+                <table>
+                    <tr>
+                        <td>
+                            <input type="checkbox" {{ $serviceReport->civil_work ? 'checked' : '' }}> 
+                        </td>
+                        <td>
+                            <p style="margin: 0; display: inline; font-size:13px;padding-left:5px">Civil</p>
+                        </td>
+                    </tr>
+                </table>
             </td>
         </tr>
     </table>
 
     <div class="">
-        <h3 style="padding-left: 3pt;margin-top:20px;text-indent: 0pt;text-align: left; font-size:16px">Client Side Notes / Description</h3>
+        <h3 style="padding-left: 3pt;margin-top:20px;text-indent: 0pt;text-align: left; font-size:16px">Job Details</h3>
         <p style="padding-left: 3pt;margin-top:20px;text-indent: 0pt;text-align: left; font-size:14px">
-            loram ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
-            loram ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
-            loram ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
-            loram ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
-
+            {{ $serviceReport->job_details }}
         </p>
     </div>
+    
+    @if($serviceReport->before_pictures && count($serviceReport->before_pictures) > 0)
+    <div style="margin-top: 30px;">
+        <h3 style="padding-left: 3pt;text-indent: 0pt;text-align: left; font-size:16px">Before Pictures</h3>
+        <table style="width: 100%; margin-top: 10px; border-spacing: 2px;">
+            <tr>
+                @foreach($serviceReport->before_pictures as $index => $picture)
+                    @if($index < 4)
+                    <td style="width: 25%; padding: 1px; text-align: center; vertical-align: top;">
+                        @php
+                            $imagePath = storage_path('app/public/' . $picture);
+                            $imageData = '';
+                            if (file_exists($imagePath)) {
+                                $imageData = base64_encode(file_get_contents($imagePath));
+                                $imageType = pathinfo($imagePath, PATHINFO_EXTENSION);
+                                $mimeType = 'image/' . ($imageType === 'jpg' ? 'jpeg' : $imageType);
+                            }
+                        @endphp
+                        @if($imageData)
+                        <img src="data:{{ $mimeType }};base64,{{ $imageData }}" 
+                             style="width: 170px; height: 120px; object-fit: cover; border: 1px solid #ddd;" 
+                             alt="Before Picture {{ $index + 1 }}">
+                        {{-- <p style="text-align: center; font-size: 8px; margin-top: 3px;">Before {{ $index + 1 }}</p> --}}
+                        @endif
+                    </td>
+                    @endif
+                @endforeach
+                @for($i = count($serviceReport->before_pictures); $i < 4; $i++)
+                <td style="width: 25%;"></td>
+                @endfor
+            </tr>
+        </table>
+    </div>
+    @endif
+    
+    @if($serviceReport->after_pictures && count($serviceReport->after_pictures) > 0)
+    <div style="margin-top: 30px;">
+        <h3 style="padding-left: 3pt;text-indent: 0pt;text-align: left; font-size:16px">After Pictures</h3>
+        <table style="width: 100%; margin-top: 10px; border-spacing: 2px;">
+            <tr>
+                @foreach($serviceReport->after_pictures as $index => $picture)
+                    @if($index < 4)
+                    <td style="width: 25%; padding: 2px; text-align: center; vertical-align: top;">
+                        @php
+                            $imagePath = storage_path('app/public/' . $picture);
+                            $imageData = '';
+                            if (file_exists($imagePath)) {
+                                $imageData = base64_encode(file_get_contents($imagePath));
+                                $imageType = pathinfo($imagePath, PATHINFO_EXTENSION);
+                                $mimeType = 'image/' . ($imageType === 'jpg' ? 'jpeg' : $imageType);
+                            }
+                        @endphp
+                        @if($imageData)
+                        <img src="data:{{ $mimeType }};base64,{{ $imageData }}" 
+                             style="width: 170px; height: 120px; object-fit: cover; border: 1px solid #ddd;" 
+                             alt="After Picture {{ $index + 1 }}">
+                        {{-- <p style="text-align: center; font-size: 8px; margin-top: 3px;">After {{ $index + 1 }}</p> --}}
+                        @endif
+                    </td>
+                    @endif
+                @endforeach
+                @for($i = count($serviceReport->after_pictures); $i < 4; $i++)
+                <td style="width: 25%;"></td>
+                @endfor
+            </tr>
+        </table>
+    </div>
+    @endif
     
     <p style="text-indent: 0pt;text-align: left;"><br /></p>
     {{-- <p class="s11" style="padding-top: 3pt;padding-left: 5pt;text-indent: 0pt;text-align: left;">BANK DETAILS:&nbsp;</p>
@@ -355,39 +479,48 @@
                 {{-- <p style="text-indent: 0pt;text-align: left;">Thank you for your business!</p> --}}
             </td>
             <!-- Stamp section -->
-            {{-- <td style="text-align: right; vertical-align: bottom;">
+            <td style="text-align: right; vertical-align: bottom;">
                 <table border="0" cellspacing="0" cellpadding="0" style="margin-left: auto;">
                     <tr>
                         <td>
-                        <img width="88" height="94"
-                            src="data:image/jpg;base64,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" />
+                        <h4 style="margin: 0; line-height: 1.2;">
+                            Client Signature <br />
+                        </h4>
+                        <div width="88" height="94" style="width: 88px; height: 60px; margin-top: 5px;">
+                        </div>
+                        {{-- <img width="88" height="94"
+                            src="data:image/jpg;base64,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" /> --}}
+                        <p style=" text-align: right ; margin-left: auto; margin-right:35px;">authorised signature</p>
                         
                         </td>
+
                     </tr>
                 </table>
-            </td> --}}
+            </td>
             <!-- Signature section -->
             <td style="padding-right: 20px; text-align: right; vertical-align: bottom;">
                 <h4 style="margin: 0; line-height: 1.2;">
-                    Client Signature <br />
-                    {{-- <span style="margin-right: 30px;">SERVICES LLC</span> --}}
+                    {{-- from NOOR ALFATH TECHNICAL <br />
+                    <span style="margin-right: 30px;">SERVICES LLC</span> --}}
                 </h4>
 
                 <table border="0" cellspacing="0" cellpadding="0" style="margin-left: auto; margin-right:auto; margin-top:20px">
                     <tr>
-                        <td style="margin-top:20px">
-                            -------------------
                         <td>
+                        {{-- <img width="58" height="33"
+                                src="data:image/jpg;base64,/9j/4AAQSkZJRgABAQEAYABgAAD/2wBDAAMCAgMCAgMDAwMEAwMEBQgFBQQEBQoHBwYIDAoMDAsKCwsNDhIQDQ4RDgsLEBYQERMUFRUVDA8XGBYUGBIUFRT/2wBDAQMEBAUEBQkFBQkUDQsNFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBT/wAARCAAhADoDASIAAhEBAxEB/8QAHwAAAQUBAQEBAQEAAAAAAAAAAAECAwQFBgcICQoL/8QAtRAAAgEDAwIEAwUFBAQAAAF9AQIDAAQRBRIhMUEGE1FhByJxFDKBkaEII0KxwRVS0fAkM2JyggkKFhcYGRolJicoKSo0NTY3ODk6Q0RFRkdISUpTVFVWV1hZWmNkZWZnaGlqc3R1dnd4eXqDhIWGh4iJipKTlJWWl5iZmqKjpKWmp6ipqrKztLW2t7i5usLDxMXGx8jJytLT1NXW19jZ2uHi4+Tl5ufo6erx8vP09fb3+Pn6/8QAHwEAAwEBAQEBAQEBAQAAAAAAAAECAwQFBgcICQoL/8QAtREAAgECBAQDBAcFBAQAAQJ3AAECAxEEBSExBhJBUQdhcRMiMoEIFEKRobHBCSMzUvAVYnLRChYkNOEl8RcYGRomJygpKjU2Nzg5OkNERUZHSElKU1RVVldYWVpjZGVmZ2hpanN0dXZ3eHl6goOEhYaHiImKkpOUlZaXmJmaoqOkpaanqKmqsrO0tba3uLm6wsPExcbHyMnK0tPU1dbX2Nna4uPk5ebn6Onq8vP09fb3+Pn6/9oADAMBAAIRAxEAPwD9UulJng1z/iu9vJHs9H02Y299qG7dcJt329uuPMlQNwWBZFGcgGQEhgCpwNGZPAni+40A3t7d6ff6e+pWS391LdSRNAyR3CmWV2faRLbsq84PmnPIFaKF43vr2EdV4T8RweLvDmn6xbIY4byIShGIJX1GRwcHIyOD2rL8Y65d6Tr/AILt7Vl8vUtXe0uFYctGLK6l49CGhQ/QH1rzL4T/ABs8Pad4X8JaI11EYIPDtrNLdtKC81wyhVht4gC9wxZJ8mMHDR7eWyBd8bav4nvvip4DW10Bp7KBdQ1SCyWeKObekSWwkuGdsJHi9f5Yw7jCk5yyL1+wcKrUlZa7/P8A4Ar6HtVZuseJtI8PfZ/7V1Wy037TKsEH2y4SLzZCcBF3EbmJ6Ac1yGt3Or2Wk3Gq+Ltft/DulRgb7PRAzyEk7fLNwy75CxKhRFHG+4gAsSKx/Cnw3tfEE6atqehR6TZM0ckFleZn1G52OHjkvbhyzkhlRhDuO0oNzMTtTBU4pc0n939fl947nrIORR/nrWB4m8daF4Mn0qDWdRjsZdUuBaWisrMZZD24BwOnJwMkDOSK3s1zjMizP2rxLfzeYHW3ijtljI5jY5dzn0YNF/3xXM/HLStGvPhf4kvtY0uw1NdM066vbf7fax3CwypA+HVXBG7qPxx3rWimPhzxJqr3K3UttqJjuImgtJJQjqgjdWKKQvCIRuxnccfdNXL7xXp0EeJIr6cMACkOm3Ex57EKhx+Nbx5ozjKPS39fmIXw/wCFtO0ey0vZYWqXVlZR2Uc6xAOkSgAIrdQvtmuY8Ov/AMJV8V9a1yBmk0zR7IaHby8FJLhpPMuth7hdluhP99HU8oa0Z4/EHjFJbZoZvC+kNlWmWZTfzrnkLtysII/j3F8E4EbAMOm0jSbPQtNttP0+2js7K2QRwwQrtRFHQAUm+VO7u3+H9f5gYfjb4daN4/8A7OOrC9EmnytPay2N/PaPFIVKFg0Tqc7SQD1GTjGTnL0D4HeCPDerR6vbaBDcazHJ5q6pqMkl5dh8Yz50zO/Tpzxk46mu7PWg1k23ZMZXutOtb5oWubaG4aCQSxGVAxjcdGXPQ+4qfFKaTNIBD96k9KKKQC9qU96KKYBQetFFAC+tNoooA//Z" /> --}}
+                        
+                        </td>
                     </tr>
                 </table>
 
-                <p style=" text-align: right ; margin-left: auto; margin-right:20px;">authorised signature</p>
+                {{-- <p style=" text-align: right ; margin-left: auto; margin-right:20px;">authorised signature</p> --}}
             </td>
 
             
         </tr>
     </table>
-    <table style="width: 100%; margin-top: 30px; position:fixed; bottom: 0; left: 0; right: 0; border-top: 1px solid black; padding-top: 10px;">
+    <table style="width: 100%; margin-top: 30px; position:fixed; bottom: 20%; left: 0; right: 0; border-top: 1px solid black; padding-top: 10px;">
         <tr>
             <td style="width: 55%; vertical-align: top; text-align: left;">
                 {{-- <p style="text-indent: 0pt;text-align: left;">Thank you for your business!</p> --}}
@@ -407,7 +540,7 @@
             <!-- Signature section -->
             <td style="padding-right: 20px; text-align: right; vertical-align: bottom;">
                 <h4 style="margin: 0; line-height: 1.2;">
-                    for NOOR ALFATH TECHNICAL <br />
+                    from NOOR ALFATH TECHNICAL <br />
                     <span style="margin-right: 30px;">SERVICES LLC</span>
                 </h4>
 

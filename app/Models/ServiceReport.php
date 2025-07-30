@@ -17,6 +17,8 @@ class ServiceReport extends Model
         'electrical_work',
         'civil_work',
         'job_details',
+        'before_pictures',
+        'after_pictures',
     ];
 
     protected $casts = [
@@ -26,6 +28,8 @@ class ServiceReport extends Model
         'paint_work' => 'boolean',
         'electrical_work' => 'boolean',
         'civil_work' => 'boolean',
+        'before_pictures' => 'array',
+        'after_pictures' => 'array',
     ];
 
     /**

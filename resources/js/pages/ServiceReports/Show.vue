@@ -5,7 +5,7 @@ import { Head, Link, router } from '@inertiajs/vue3';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Edit, Trash2, ArrowLeft, CheckCircle } from 'lucide-vue-next';
+import { Edit, Trash2, ArrowLeft, CheckCircle, Download } from 'lucide-vue-next';
 
 interface Client {
     id: number;
@@ -23,6 +23,8 @@ interface ServiceReport {
     electrical_work: boolean;
     civil_work: boolean;
     job_details: string;
+    before_pictures?: string[];
+    after_pictures?: string[];
     created_at: string;
 }
 
@@ -69,6 +71,14 @@ const deleteServiceReport = () => {
     }
 };
 
+const downloadPdf = () => {
+    window.open(`/service-reports/${props.serviceReport.id}/download-pdf`, '_blank');
+};
+
+const openImageModal = (imageUrl: string) => {
+    window.open(imageUrl, '_blank');
+};
+
 const getServiceList = () => {
     const services = [];
     if (props.serviceReport.ac_work) services.push('A/C Work');
@@ -92,6 +102,10 @@ const getServiceList = () => {
                     <p class="text-muted-foreground">{{ serviceReport.service_report_number }}</p>
                 </div>
                 <div class="flex space-x-3">
+                    <Button variant="default" @click="downloadPdf">
+                        <Download class="w-4 h-4 mr-2" />
+                        Download PDF
+                    </Button>
                     <Button variant="outline" as-child>
                         <Link :href="`/service-reports/${serviceReport.id}/edit`">
                             <Edit class="w-4 h-4 mr-2" />
@@ -149,6 +163,48 @@ const getServiceList = () => {
                             </div>
                         </CardContent>
                     </Card>
+
+                    <!-- Before Pictures -->
+                    <Card v-if="serviceReport.before_pictures && serviceReport.before_pictures.length > 0">
+                        <CardHeader>
+                            <CardTitle>Before Pictures</CardTitle>
+                            <CardDescription>Pictures taken before the work began</CardDescription>
+                        </CardHeader>
+                        <CardContent>
+                            <div class="grid grid-cols-2 gap-4">
+                                <div v-for="(picture, index) in serviceReport.before_pictures" :key="index" 
+                                     class="relative group">
+                                    <img 
+                                        :src="`/storage/${picture}`" 
+                                        :alt="`Before picture ${index + 1}`"
+                                        class="w-full h-48 object-cover rounded-lg cursor-pointer hover:opacity-80 transition-opacity"
+                                        @click="openImageModal(`/storage/${picture}`)"
+                                    />
+                                </div>
+                            </div>
+                        </CardContent>
+                    </Card>
+
+                    <!-- After Pictures -->
+                    <Card v-if="serviceReport.after_pictures && serviceReport.after_pictures.length > 0">
+                        <CardHeader>
+                            <CardTitle>After Pictures</CardTitle>
+                            <CardDescription>Pictures taken after the work was completed</CardDescription>
+                        </CardHeader>
+                        <CardContent>
+                            <div class="grid grid-cols-2 gap-4">
+                                <div v-for="(picture, index) in serviceReport.after_pictures" :key="index" 
+                                     class="relative group">
+                                    <img 
+                                        :src="`/storage/${picture}`" 
+                                        :alt="`After picture ${index + 1}`"
+                                        class="w-full h-48 object-cover rounded-lg cursor-pointer hover:opacity-80 transition-opacity"
+                                        @click="openImageModal(`/storage/${picture}`)"
+                                    />
+                                </div>
+                            </div>
+                        </CardContent>
+                    </Card>
                 </div>
 
                 <!-- Services Performed -->
@@ -180,6 +236,10 @@ const getServiceList = () => {
                             <CardDescription>Manage this service report</CardDescription>
                         </CardHeader>
                         <CardContent class="space-y-3">
+                            <Button variant="outline" class="w-full" @click="downloadPdf">
+                                <Download class="w-4 h-4 mr-2" />
+                                Download PDF
+                            </Button>
                             <Button variant="outline" class="w-full" as-child>
                                 <Link :href="`/service-reports/${serviceReport.id}/edit`">
                                     <Edit class="w-4 h-4 mr-2" />

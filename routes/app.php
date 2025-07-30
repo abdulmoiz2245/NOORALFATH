@@ -12,9 +12,15 @@ use App\Http\Controllers\QuotationController;
 use App\Http\Controllers\ReportController;
 use App\Http\Controllers\ServiceReportController;
 use App\Http\Controllers\VendorController;
+use Illuminate\Contracts\View\View;
 use Illuminate\Support\Facades\Route;
 
 Route::middleware('auth')->group(function () {
+
+    Route::get('/test123' , function () {
+        return view('pdf/invoice');
+
+    });
 
     Route::resource('lpos', LocalPurchaseOrderController::class);
     // PDF Download Route for LPOs
@@ -66,6 +72,7 @@ Route::middleware('auth')->group(function () {
     
     // Service Report Management Routes
     Route::resource('service-reports', ServiceReportController::class);
+    Route::get('service-reports/{serviceReport}/download-pdf', [ServiceReportController::class, 'downloadPdf'])->name('service-reports.download-pdf');
     
     // Expense Management Routes
     Route::resource('expenses', ExpenseController::class);

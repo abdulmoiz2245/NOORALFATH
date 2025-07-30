@@ -396,9 +396,12 @@
         </tr>
         
     </table>
-    {{-- @if(count($quotation->paymentSchedules) > 1) --}}
-
-    {{-- @endif --}}
+    @if($lpo->terms != '') 
+    <h3 style="padding-top: 5pt;padding-left: 6pt;text-indent: 0pt;text-align: left;">Payment Term</h3>
+    <p style="padding-left: 6pt;text-indent: 0pt;text-align: left;">
+        {{ $lpo->terms }}
+    </p>
+    @endif
     <p style="text-indent: 0pt;text-align: left;"><br /></p>
     {{-- <p class="s11" style="padding-top: 3pt;padding-left: 5pt;text-indent: 0pt;text-align: left;">BANK DETAILS:&nbsp;</p>
     <h3 style="padding-left: 5pt;text-indent: 0pt;text-align: left;">Account Title: {{ $company->bank_details['account_holder'] }}

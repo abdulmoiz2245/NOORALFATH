@@ -59,11 +59,11 @@ const mainNavItems: NavItem[] = [
         href: '/service-reports',
         icon: Wrench,
     },
-    // {
-    //     title: 'Expenses',
-    //     href: '/expenses',
-    //     icon: Receipt,
-    // },
+    {
+        title: 'Expenses',
+        href: '/expenses',
+        icon: Receipt,
+    },
     {
         title: 'Reports',
         href: '/reports',

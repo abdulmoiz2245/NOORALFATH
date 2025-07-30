@@ -200,6 +200,7 @@ const submit = () => {
                                         <SelectValue placeholder="Select category" />
                                     </SelectTrigger>
                                     <SelectContent>
+                                        <SelectItem value="null">Select a category</SelectItem>
                                         <SelectItem v-for="category in categories" :key="category" :value="category">
                                             {{ category }}
                                         </SelectItem>
@@ -246,7 +247,7 @@ const submit = () => {
                                         <SelectValue placeholder="Select vendor (optional)" />
                                     </SelectTrigger>
                                     <SelectContent>
-                                        <SelectItem value="">No Vendor</SelectItem>
+                                        <SelectItem value="null">No Vendor</SelectItem>
                                         <SelectItem v-for="vendor in vendors" :key="vendor.id" :value="vendor.id.toString()">
                                             {{ vendor.name }}{{ vendor.company ? ` - ${vendor.company}` : '' }}
                                         </SelectItem>
@@ -261,7 +262,7 @@ const submit = () => {
                                         <SelectValue placeholder="Select project (optional)" />
                                     </SelectTrigger>
                                     <SelectContent>
-                                        <SelectItem value="">No Project</SelectItem>
+                                        <SelectItem value="null">No Project</SelectItem>
                                         <SelectItem v-for="project in projects" :key="project.id" :value="project.id.toString()">
                                             {{ project.name }}
                                         </SelectItem>
