@@ -11,6 +11,7 @@ class LocalPurchaseOrder extends Model
     protected $table = 'local_purchase_order';
     protected $fillable = [
         'vendor_id',
+        'company',
         'lpo_number',
         'issue_date',
         'trn_number',

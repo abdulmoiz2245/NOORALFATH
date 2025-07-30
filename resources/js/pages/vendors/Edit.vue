@@ -15,7 +15,8 @@ import { useToast } from '@/composables/useToast';
 interface Vendor {
     id: number;
     name: string;
-    company?: string;
+    company_name?: string;
+    trn_number?: string;
     email?: string;
     phone?: string;
     address?: string;
@@ -53,7 +54,8 @@ const breadcrumbs: BreadcrumbItem[] = [
 
 const form = useForm({
     name: props.vendor.name,
-    company: props.vendor.company || '',
+    company_name: props.vendor.company_name || '',
+    trn_number: props.vendor.trn_number || '',
     email: props.vendor.email || '',
     phone: props.vendor.phone || '',
     address: props.vendor.address || '',
@@ -138,11 +140,23 @@ const deleteVendor = () => {
                                 <Label for="company">Company</Label>
                                 <Input
                                     id="company"
-                                    v-model="form.company"
+                                    v-model="form.company_name"
                                     placeholder="Company name"
-                                    :class="{ 'border-red-500': form.errors.company }"
+                                    :class="{ 'border-red-500': form.errors.company_name }"
                                 />
-                                <InputError :message="form.errors.company" />
+                                <InputError :message="form.errors.company_name" />
+                            </div>
+
+
+                            <div class="space-y-2">
+                                <Label for="trn_number">TRN Number</Label>
+                                <Input
+                                    id="trn_number"
+                                    v-model="form.trn_number"
+                                    placeholder="TRN number"
+                                    :class="{ 'border-red-500': form.errors.trn_number }"
+                                />
+                                <InputError :message="form.errors.trn_number" />
                             </div>
 
                             <div class="space-y-2">

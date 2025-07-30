@@ -31,7 +31,8 @@ const breadcrumbs: BreadcrumbItem[] = [
 
 const form = useForm({
     name: '',
-    company: '',
+    company_name: '',
+    trn_number: '',
     email: '',
     phone: '',
     address: '',
@@ -99,11 +100,23 @@ const submit = () => {
                                 <Label for="company">Company</Label>
                                 <Input
                                     id="company"
-                                    v-model="form.company"
+                                    v-model="form.company_name"
                                     placeholder="Company name"
-                                    :class="{ 'border-red-500': form.errors.company }"
+                                    :class="{ 'border-red-500': form.errors.company_name }"
                                 />
-                                <InputError :message="form.errors.company" />
+                                <InputError :message="form.errors.company_name" />
+                            </div>
+
+
+                            <div class="space-y-2">
+                                <Label for="trn_number">TRN Number</Label>
+                                <Input
+                                    id="trn_number"
+                                    v-model="form.trn_number"
+                                    placeholder="TRN number"
+                                    :class="{ 'border-red-500': form.errors.trn_number }"
+                                />
+                                <InputError :message="form.errors.trn_number" />
                             </div>
 
                             <div class="space-y-2">

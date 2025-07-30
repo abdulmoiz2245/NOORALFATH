@@ -434,7 +434,7 @@
                     <span style="margin-right: 30px;">SERVICES LLC</span>
                 </h4>
 
-                <table border="0" cellspacing="0" cellpadding="0" style="margin-left: auto;">
+                <table border="0" cellspacing="0" cellpadding="0" style="margin-left: auto; margin-right:auto; margin-top:10px">
                     <tr>
                         <td>
                         <img width="58" height="33"
@@ -444,7 +444,7 @@
                     </tr>
                 </table>
 
-                <p style="margin: 5px 0 0 0; text-align: right;">authorised signature</p>
+                <p style=" text-align: right ; margin-left: auto; margin-right:20px;">authorised signature</p>
             </td>
 
             

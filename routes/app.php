@@ -10,6 +10,7 @@ use App\Http\Controllers\ProductController;
 use App\Http\Controllers\ProjectController;
 use App\Http\Controllers\QuotationController;
 use App\Http\Controllers\ReportController;
+use App\Http\Controllers\ServiceReportController;
 use App\Http\Controllers\VendorController;
 use Illuminate\Support\Facades\Route;
 
@@ -62,6 +63,9 @@ Route::middleware('auth')->group(function () {
     
     // Vendor Management Routes
     Route::resource('vendors', VendorController::class);
+    
+    // Service Report Management Routes
+    Route::resource('service-reports', ServiceReportController::class);
     
     // Expense Management Routes
     Route::resource('expenses', ExpenseController::class);

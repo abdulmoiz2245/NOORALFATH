@@ -4,7 +4,7 @@
 
 <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    <title>Noor Alfath Technical Services LLC — Local Purchase Order — {{ $lpo->lpo_number ?? 'LPO' }} — View.pdf</title>
+    <title>Noor Alfath Technical Services LLC — Purchase Order — {{ $lpo->lpo_number ?? 'LPO' }} — View.pdf</title>
     <meta name="author" content="Ysa" />
     <meta name="keywords" content="DAGswAfis2s,BAGGPga4JjE,01" />
     <style type="text/css">
@@ -199,7 +199,7 @@
 <body style="margin:30px">
     <div >
         <h1 style="padding-top: 30px;float: left;padding-left: 7pt;text-indent: 0pt;text-align: left;">
-            Local Purchase Order
+            Purchase Order
         </h1>
 
         <p style="text-indent: 0pt;text-align: right;">
@@ -218,16 +218,31 @@
     <table style="width: 100%; border-collapse: collapse; margin-top:10px">
         <tr>
             <!-- Left: Vendor Information -->
-            <td style="width: 50%; vertical-align: top;line-height: 13px">
-                <h3 style="padding-top: 3pt; padding-left: 6pt; text-align: left;">{{ $lpo->vendor->name ?? 'Vendor Name' }}</h3>
-                <p style="padding-left: 6pt; text-align: left;">{{ $lpo->vendor->address ?? 'Vendor Address' }}</p>
-                <p style="padding-left: 6pt; text-align: left;">{{ $lpo->vendor->contact_number ?? 'Contact Number' }}</p>
-                <br>
-                @if($lpo->vendor->trn_number ?? false)
-                    <p style="padding-left: 6pt; text-align: left;">TRN: {{ $lpo->vendor->trn_number }}</p>
-                @endif
-               
+            <td style="width: 50%; vertical-align: top; line-height: 12px;">
+                <table style="width: 100%; border-collapse: collapse;">
+                    <tr>
+                        <td style="padding: 3pt 6pt 0 6pt; text-align: left; white-space: nowrap;"><p>Company</p> </td>
+                        <td style="padding: 3pt 6pt 0 6pt; text-align: left;"><p> : &nbsp;&nbsp;{{ $lpo->vendor->company_name }}</p></td>
+                    </tr>
+                    <tr>
+                        <td style="padding: 3pt 6pt 0 6pt; text-align: left;"><p>Attention</p></td>
+                        <td style="padding: 3pt 6pt 0 6pt; text-align: left;"><p> : &nbsp;&nbsp;{{ $lpo->vendor->name }}</p></td>
+                    </tr>
+                    <tr>
+                        <td style="padding: 3pt 6pt 0 6pt; text-align: left;"><p>Address</p></td>
+                        <td style="padding: 3pt 6pt 0 6pt; text-align: left;"><p> : &nbsp;&nbsp;{{ $lpo->vendor->address }}</p></td>
+                    </tr>
+                    <tr>
+                        <td style="padding: 3pt 6pt 0 6pt; text-align: left;"><p>Phone</p></td>
+                        <td style="padding: 3pt 6pt 0 6pt; text-align: left;"><p> : &nbsp;&nbsp;{{ $lpo->vendor->phone }}</p></td>
+                    </tr>
+                    <tr>
+                        <td style="padding: 3pt 6pt 0 6pt; text-align: left;"><p>TRN</p></td>
+                        <td style="padding: 3pt 6pt 0 6pt; text-align: left;"><p> : &nbsp;&nbsp;{{ $lpo->vendor->trn_number }}</p></td>
+                    </tr>
+                </table>
             </td>
+
 
             <!-- Middle: Issue Date -->
             <td style="width: 40%;vertical-align: top;border-right: 1px solid black;padding-right: 10px;padding-left: 100px;">
@@ -235,10 +250,12 @@
                 <p style="text-align: right;">{{ \Carbon\Carbon::parse($lpo->issue_date)->format('d/m/Y') }}</p>
                 <h3 style="padding-top: 5pt; text-align: right;">LPO Number</h3>
                 <p style="text-align: right;">{{ $lpo->lpo_number }}</p>
-                @if($lpo->subject)
+                {{-- <h3 style="padding-top: 5pt; text-align: right;">TRN</h3>
+                <p style="text-align: right;">{{ $lpo->vendor->trn_number }}</p> --}}
+                {{-- @if($lpo->subject)
                 <h3 style="padding-top: 5pt; text-align: right;">Subject</h3>
                 <p style="text-align: right;">{{ $lpo->subject }}</p>
-                @endif
+                @endif --}}
             </td>
 
             <!-- Right: NOOR ALFATH TECHNICAL SERVICES -->
@@ -258,26 +275,27 @@
     
     <p style="text-indent: 0pt;text-align: left; margin-top: 10px;"><br /></p>
     <h2 style="padding-left: 6pt;text-indent: 0pt;text-align: left;">
-        {{ $lpo->description ?? 'Please deliver the items as per the specifications below.' }}
+       Sub/Ref : {{ $lpo->subject }}
     </h2>
     <p style="text-indent: 0pt;text-align: left;"><br /></p>
     <table style="border-collapse:collapse;margin-left:7.2004pt" cellspacing="0">
         <tr style="height:24pt">
             <td
-                style="width:35pt;border-top-style:solid;border-top-width:1pt;border-left-style:solid;border-left-width:1pt;border-bottom-style:solid;border-bottom-width:1pt;border-right-style:solid;border-right-width:1pt">
+                style="width:40pt;border-top-style:solid;border-top-width:1pt;border-left-style:solid;border-left-width:1pt;border-bottom-style:solid;border-bottom-width:1pt;border-right-style:solid;border-right-width:1pt">
                 <p class="s2" style="padding-top: 2pt;text-indent: 0pt;text-align: center;">#</p>
             </td>
             <td
-                style="width:160pt;border-top-style:solid;border-top-width:1pt;border-left-style:solid;border-left-width:1pt;border-bottom-style:solid;border-bottom-width:1pt;border-right-style:solid;border-right-width:1pt">
+                colspan="2"
+                style="width:180pt;border-top-style:solid;border-top-width:1pt;border-left-style:solid;border-left-width:1pt;border-bottom-style:solid;border-bottom-width:1pt;border-right-style:solid;border-right-width:1pt">
                 <p class="s2" style="padding-top: 2pt;padding-left: 5pt;text-indent: 0pt;text-align: left;">Description
                 </p>
             </td>
-            <td
+            {{-- <td
                 style="width:35pt;border-top-style:solid;border-top-width:1pt;border-left-style:solid;border-left-width:1pt;border-bottom-style:solid;border-bottom-width:1pt;border-right-style:solid;border-right-width:1pt">
                 <p class="s2" style="padding-top: 2pt;text-indent: 0pt;text-align: center;">Unit</p>
-            </td>
+            </td> --}}
             <td
-                style="width:35pt;border-top-style:solid;border-top-width:1pt;border-left-style:solid;border-left-width:1pt;border-bottom-style:solid;border-bottom-width:1pt;border-right-style:solid;border-right-width:1pt">
+                style="width:40pt;border-top-style:solid;border-top-width:1pt;border-left-style:solid;border-left-width:1pt;border-bottom-style:solid;border-bottom-width:1pt;border-right-style:solid;border-right-width:1pt">
                 <p class="s2" style="padding-top: 2pt;text-indent: 0pt;text-align: center;">Qty</p>
             </td>
             <td
@@ -291,17 +309,17 @@
                 <p class="s2" style="padding-top: 2pt;padding-right: 2pt;text-indent: 0pt;text-align: right;">Amount</p>
             </td>
             <td
-                style="width:35pt;border-top-style:solid;border-top-width:1pt;border-left-style:solid;border-left-width:1pt;border-bottom-style:solid;border-bottom-width:1pt;border-right-style:solid;border-right-width:1pt">
+                style="width:45pt;border-top-style:solid;border-top-width:1pt;border-left-style:solid;border-left-width:1pt;border-bottom-style:solid;border-bottom-width:1pt;border-right-style:solid;border-right-width:1pt">
                 <p class="s2" style="padding-top: 2pt;text-indent: 0pt;text-align: center;">Tax</p>
             </td>
             <td
-                style="width:40pt;border-top-style:solid;border-top-width:1pt;border-left-style:solid;border-left-width:1pt;border-bottom-style:solid;border-bottom-width:1pt;border-right-style:solid;border-right-width:1pt">
+                style="width:45pt;border-top-style:solid;border-top-width:1pt;border-left-style:solid;border-left-width:1pt;border-bottom-style:solid;border-bottom-width:1pt;border-right-style:solid;border-right-width:1pt">
                 <p class="s3"
                     style="padding-top: 1pt;padding-left: 5pt;padding-right: 2pt;text-indent: 0pt;text-align: left;">
                     Tax Amount</p>
             </td>
             <td
-                style="width:50pt;border-top-style:solid;border-top-width:1pt;border-left-style:solid;border-left-width:1pt;border-bottom-style:solid;border-bottom-width:1pt;border-right-style:solid;border-right-width:1pt">
+                style="width:60pt;border-top-style:solid;border-top-width:1pt;border-left-style:solid;border-left-width:1pt;border-bottom-style:solid;border-bottom-width:1pt;border-right-style:solid;border-right-width:1pt">
                 <p class="s2" style="padding-top: 2pt;padding-left: 38pt;text-indent: 0pt;text-align: left;">Total</p>
             </td>
         </tr>
@@ -311,14 +329,14 @@
             <td style="width:35pt;border-top-style:solid;border-top-width:1pt;border-left-style:solid;border-left-width:1pt;border-right-style:solid;border-right-width:1pt">
                 <p class="s4" style="padding-top: 1pt;text-indent: 0pt;text-align: center;">{{ $index + 1 }}</p>
             </td>
-            <td style="width:160pt;border-top-style:solid;border-top-width:1pt;border-left-style:solid;border-left-width:1pt;border-right-style:solid;border-right-width:1pt">
+            <td colspan="2" style="width:180pt;border-top-style:solid;border-top-width:1pt;border-left-style:solid;border-left-width:1pt;border-right-style:solid;border-right-width:1pt">
                 <p class="s4" style="padding-top: 1pt;padding-left: 5pt;padding-right: 5pt;text-indent: 0pt;text-align: left;">
                     {{ $item->description ?? $item->product->name ?? 'Item' }}
                 </p>
             </td>
-            <td style="width:35pt;border-top-style:solid;border-top-width:1pt;border-left-style:solid;border-left-width:1pt;border-right-style:solid;border-right-width:1pt">
+            {{-- <td style="width:35pt;border-top-style:solid;border-top-width:1pt;border-left-style:solid;border-left-width:1pt;border-right-style:solid;border-right-width:1pt">
                 <p class="s4" style="padding-top: 1pt;text-indent: 0pt;text-align: center;">{{ $item->unit ?? 'pcs' }}</p>
-            </td>
+            </td> --}}
             <td style="width:35pt;border-top-style:solid;border-top-width:1pt;border-left-style:solid;border-left-width:1pt;border-right-style:solid;border-right-width:1pt">
                 <p class="s4" style="padding-top: 1pt;text-indent: 0pt;text-align: center;">{{ $item->quantity }}</p>
             </td>
@@ -411,7 +429,7 @@
                     <span style="margin-right: 30px;">SERVICES LLC</span>
                 </h4>
 
-                <table border="0" cellspacing="0" cellpadding="0" style="margin-left: auto;margin-top:20px">
+                <table border="0" cellspacing="0" cellpadding="0" style="margin-left: auto; margin-right:auto; margin-top:20px">
                     <tr>
                         <td>
                         <img width="58" height="33"
@@ -421,7 +439,7 @@
                     </tr>
                 </table>
 
-                <p style="margin: 5px 0 0 0; text-align: right;">authorised signature</p>
+                <p style=" text-align: right ; margin-left: auto; margin-right:20px;">authorised signature</p>
             </td>
 
             
