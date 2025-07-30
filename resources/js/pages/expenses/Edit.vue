@@ -29,16 +29,16 @@ interface Expense {
     id: number;
     description: string;
     amount: number;
-    date: string;
     category: string;
     vendor_id?: number;
     vendor?: Vendor;
     project_id?: number;
     project?: Project;
-    receipt_path?: string;
+    receipt_file?: string;
     is_billable: boolean;
     is_reimbursable: boolean;
     notes?: string;
+    expense_date: string;
 }
 
 interface Props {
@@ -72,15 +72,15 @@ const breadcrumbs: BreadcrumbItem[] = [
 const form = useForm({
     description: props.expense.description,
     amount: props.expense.amount.toString(),
-    date: props.expense.date,
     category: props.expense.category,
     vendor_id: props.expense.vendor_id?.toString() || '',
     project_id: props.expense.project_id?.toString() || '',
     receipt: null as File | null,
-    is_billable: props.expense.is_billable,
-    is_reimbursable: props.expense.is_reimbursable,
+    is_billable: props.expense.is_billable ?? false,
+    is_reimbursable: props.expense.is_reimbursable ?? false,
     notes: props.expense.notes || '',
-    remove_receipt: false,
+    remove_receipt: false as boolean,
+    expense_date: props.expense.expense_date,
 });
 
 const fileInput = ref<HTMLInputElement | null>(null);
@@ -140,8 +140,21 @@ const removeExistingReceipt = () => {
     form.remove_receipt = true;
 };
 
+const viewReceipt = () => {
+    if (props.expense.receipt_file) {
+        window.open(`/storage/${props.expense.receipt_file}`, '_blank');
+    }
+};
+
 const submit = () => {
-    form.put(`/expenses/${props.expense.id}`, {
+    // Add _method for PUT request when using FormData
+    form.transform((data) => ({
+        ...data,
+        _method: 'PUT'
+    }));
+    
+    form.post(`/expenses/${props.expense.id}`, {
+        forceFormData: true,
         onSuccess: () => {
             success('Success!', 'Expense updated successfully');
         },
@@ -229,11 +242,11 @@ const deleteExpense = () => {
                                     <Label for="date">Date *</Label>
                                     <Input
                                         id="date"
-                                        v-model="form.date"
+                                        v-model="form.expense_date"
                                         type="date"
-                                        :class="{ 'border-red-500': form.errors.date }"
+                                        :class="{ 'border-red-500': form.errors.expense_date }"
                                     />
-                                    <InputError :message="form.errors.date" />
+                                    <InputError :message="form.errors.expense_date" />
                                 </div>
                             </div>
 
@@ -290,7 +303,7 @@ const deleteExpense = () => {
                                         <SelectValue placeholder="Select vendor (optional)" />
                                     </SelectTrigger>
                                     <SelectContent>
-                                        <SelectItem value="">No Vendor</SelectItem>
+                                        <SelectItem value="null">No Vendor</SelectItem>
                                         <SelectItem v-for="vendor in vendors" :key="vendor.id" :value="vendor.id.toString()">
                                             {{ vendor.name }}{{ vendor.company ? ` - ${vendor.company}` : '' }}
                                         </SelectItem>
@@ -305,7 +318,7 @@ const deleteExpense = () => {
                                         <SelectValue placeholder="Select project (optional)" />
                                     </SelectTrigger>
                                     <SelectContent>
-                                        <SelectItem value="">No Project</SelectItem>
+                                        <SelectItem value="null">No Project</SelectItem>
                                         <SelectItem v-for="project in projects" :key="project.id" :value="project.id.toString()">
                                             {{ project.name }}
                                         </SelectItem>
@@ -314,7 +327,7 @@ const deleteExpense = () => {
                             </div>
 
                             <!-- Current Receipt -->
-                            <div v-if="expense.receipt_path && !form.remove_receipt" class="space-y-2">
+                            <div v-if="expense.receipt_file && !form.remove_receipt" class="space-y-2">
                                 <Label>Current Receipt</Label>
                                 <div class="flex items-center justify-between p-3 border rounded-lg">
                                     <div class="flex items-center space-x-2">
@@ -325,7 +338,7 @@ const deleteExpense = () => {
                                         </div>
                                     </div>
                                     <div class="flex space-x-2">
-                                        <Button type="button" variant="outline" size="sm">
+                                        <Button type="button" variant="outline" size="sm" @click="viewReceipt">
                                             <Download class="w-4 h-4 mr-2" />
                                             View
                                         </Button>
@@ -337,7 +350,7 @@ const deleteExpense = () => {
                             </div>
 
                             <!-- Receipt Upload -->
-                            <div v-if="!expense.receipt_path || form.remove_receipt" class="space-y-2">
+                            <div v-if="!expense.receipt_file || form.remove_receipt" class="space-y-2">
                                 <Label>Receipt</Label>
                                 <div class="border-2 border-dashed border-gray-300 rounded-lg p-6">
                                     <div v-if="!selectedFileName" class="text-center">

@@ -25,13 +25,13 @@ interface Expense {
     id: number;
     description: string;
     amount: number;
-    date: string;
+    expense_date: string;
     category: string;
     vendor_id?: number;
     vendor?: Vendor;
     project_id?: number;
     project?: Project;
-    receipt_path?: string;
+    receipt_file?: string;
     is_billable: boolean;
     is_reimbursable: boolean;
     notes?: string;
@@ -45,6 +45,12 @@ interface Props {
 
 const props = defineProps<Props>();
 const { success, error } = useToast();
+
+const viewReceipt = () => {
+    if (props.expense.receipt_file) {
+        window.open(`/storage/${props.expense.receipt_file}`, '_blank');
+    }
+};
 
 const breadcrumbs: BreadcrumbItem[] = [
     {
@@ -108,7 +114,7 @@ const formatDate = (date: string) => {
                     </div>
                 </div>
                 <div class="flex space-x-2">
-                    <Button v-if="expense.receipt_path" variant="outline" size="sm">
+                    <Button v-if="expense.receipt_file" variant="outline" size="sm" @click="viewReceipt">
                         <Download class="w-4 h-4 mr-2" />
                         Download Receipt
                     </Button>
@@ -143,7 +149,7 @@ const formatDate = (date: string) => {
                         <Calendar class="h-4 w-4 text-muted-foreground" />
                     </CardHeader>
                     <CardContent>
-                        <div class="text-2xl font-bold">{{ formatDate(expense.date) }}</div>
+                        <div class="text-2xl font-bold">{{ formatDate(expense.expense_date) }}</div>
                     </CardContent>
                 </Card>
 
@@ -163,7 +169,7 @@ const formatDate = (date: string) => {
                         <Receipt class="h-4 w-4 text-muted-foreground" />
                     </CardHeader>
                     <CardContent>
-                        <div class="text-2xl font-bold">{{ expense.receipt_path ? 'Yes' : 'No' }}</div>
+                        <div class="text-2xl font-bold">{{ expense.receipt_file ? 'Yes' : 'No' }}</div>
                     </CardContent>
                 </Card>
             </div>
@@ -190,7 +196,7 @@ const formatDate = (date: string) => {
 
                             <div>
                                 <div class="text-sm font-medium text-muted-foreground">Date</div>
-                                <div class="text-lg">{{ formatDate(expense.date) }}</div>
+                                <div class="text-lg">{{ formatDate(expense.expense_date) }}</div>
                             </div>
                         </div>
 
@@ -208,7 +214,7 @@ const formatDate = (date: string) => {
                             <Badge v-if="expense.is_reimbursable" variant="default">
                                 Reimbursable
                             </Badge>
-                            <Badge v-if="expense.receipt_path" variant="default">
+                            <Badge v-if="expense.receipt_file" variant="default">
                                 <Receipt class="w-3 h-3 mr-1" />
                                 Has Receipt
                             </Badge>
@@ -268,26 +274,27 @@ const formatDate = (date: string) => {
             </div>
 
             <!-- Receipt -->
-            <Card v-if="expense.receipt_path">
+                        <!-- Receipt -->
+            <Card v-if="expense.receipt_file">
                 <CardHeader>
                     <div class="flex justify-between items-center">
                         <div>
                             <CardTitle>Receipt</CardTitle>
                             <CardDescription>Uploaded receipt for this expense</CardDescription>
                         </div>
-                        <Button variant="outline" size="sm">
+                        <Button variant="outline" size="sm" @click="viewReceipt">
                             <Download class="w-4 h-4 mr-2" />
-                            Download
+                            Download Receipt
                         </Button>
                     </div>
                 </CardHeader>
                 <CardContent>
-                    <div class="flex items-center space-x-4 p-4 border rounded-lg">
-                        <Receipt class="h-12 w-12 text-blue-500" />
-                        <div>
-                            <div class="font-medium">Receipt File</div>
-                            <div class="text-sm text-muted-foreground">
-                                Uploaded receipt for {{ expense.description }}
+                    <div class="border rounded-lg p-4 bg-gray-50">
+                        <div class="flex items-center space-x-3">
+                            <Receipt class="h-8 w-8 text-blue-500" />
+                            <div>
+                                <p class="font-medium">Receipt file</p>
+                                <p class="text-sm text-gray-500">Click download to view the receipt</p>
                             </div>
                         </div>
                     </div>

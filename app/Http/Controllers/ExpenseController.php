@@ -24,7 +24,7 @@ class ExpenseController extends Controller
                     'id' => $expense->id,
                     'description' => $expense->description,
                     'amount' => $expense->amount,
-                    'date' => $expense->date,
+                    'expense_date' => $expense->expense_date,
                     'category' => $expense->category,
                     'vendor' => $expense->vendor ? $expense->vendor->name : null,
                     'vendor_id' => $expense->vendor_id,
@@ -79,6 +79,8 @@ class ExpenseController extends Controller
             $validated['receipt_path'] = $request->file('receipt')->store('receipts', 'public');
         }
 
+        $validated['expense_date'] = $validated['date'];
+
         Expense::create($validated);
 
         return redirect()->route('expenses.index')
@@ -120,7 +122,7 @@ class ExpenseController extends Controller
         $validated = $request->validate([
             'description' => 'required|string|max:255',
             'amount' => 'required|numeric|min:0',
-            'date' => 'required|date',
+            'expense_date' => 'required|date',
             'category' => 'required|string|max:255',
             'vendor_id' => 'nullable|exists:vendors,id',
             'project_id' => 'nullable|exists:projects,id',
@@ -130,14 +132,19 @@ class ExpenseController extends Controller
             'is_reimbursable' => 'boolean',
         ]);
 
+        // dd($validated);
+
         // Handle file upload
         if ($request->hasFile('receipt')) {
             // Delete old receipt if exists
             if ($expense->receipt_path) {
                 \Storage::disk('public')->delete($expense->receipt_path);
             }
-            $validated['receipt_path'] = $request->file('receipt')->store('receipts', 'public');
+            $validated['receipt_file'] = $request->file('receipt')->store('receipts', 'public');
         }
+
+        // $validated['expense_date'] = $validated['date'];
+
 
         $expense->update($validated);
 

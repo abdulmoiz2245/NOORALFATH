@@ -13,16 +13,13 @@ interface Expense {
     id: number;
     description: string;
     amount: number;
-    date: string;
+    expense_date: string;
     category: string;
-    vendor?: string;
-    vendor_id?: number;
-    project?: string;
-    project_id?: number;
-    receipt_path?: string;
+    vendor?: { name: string };
+    project?: { name: string };
+    receipt_file?: string;
     is_billable: boolean;
     is_reimbursable: boolean;
-    created_at: string;
 }
 
 interface Props {
@@ -55,7 +52,7 @@ const filteredExpenses = computed(() => {
     if (searchQuery.value) {
         filtered = filtered.filter(expense => 
             expense.description.toLowerCase().includes(searchQuery.value.toLowerCase()) ||
-            (expense.vendor && expense.vendor.toLowerCase().includes(searchQuery.value.toLowerCase())) ||
+            (expense.vendor && expense.vendor.name.toLowerCase().includes(searchQuery.value.toLowerCase())) ||
             expense.category.toLowerCase().includes(searchQuery.value.toLowerCase())
         );
     }
@@ -64,10 +61,11 @@ const filteredExpenses = computed(() => {
 });
 
 const stats = computed(() => ({
-    total: props.expenses.reduce((sum: number, exp: Expense) => sum + exp.amount, 0),
-    billable: props.expenses.filter((exp: Expense) => exp.is_billable).reduce((sum, exp) => sum + exp.amount, 0),
-    reimbursable: props.expenses.filter((exp: Expense) => exp.is_reimbursable).reduce((sum, exp) => sum + exp.amount, 0),
-    withReceipts: props.expenses.filter((exp: Expense) => exp.receipt_path).length,
+    total: props.expenses.length,
+    totalValue: props.expenses.reduce((sum: number, exp: Expense) => sum + exp.amount, 0),
+    billable: props.expenses.filter((exp: Expense) => exp.is_billable).length,
+    reimbursable: props.expenses.filter((exp: Expense) => exp.is_reimbursable).length,
+    withReceipts: props.expenses.filter((exp: Expense) => exp.receipt_file).length,
 }));
 
 const categories = computed(() => {
@@ -83,6 +81,7 @@ const formatCurrency = (amount: number) => {
 };
 
 const formatDate = (date: string) => {
+    console.log(date);
     return new Date(date).toLocaleDateString();
 };
 </script>
@@ -207,13 +206,13 @@ const formatDate = (date: string) => {
                                                     Project: {{ expense.project }}
                                                 </p>
                                             </div>
-                                            <Receipt v-if="expense.receipt_path" class="w-4 h-4 text-green-600" />
+                                            <Receipt v-if="expense.receipt_file" class="w-4 h-4 text-green-600" />
                                         </div>
                                     </td>
                                     <td class="p-4">
                                         <div class="flex items-center space-x-2">
                                             <Calendar class="w-4 h-4 text-muted-foreground" />
-                                            <span>{{ formatDate(expense.date) }}</span>
+                                            <span>{{ formatDate(expense.expense_date) }}</span>
                                         </div>
                                     </td>
                                     <td class="p-4">

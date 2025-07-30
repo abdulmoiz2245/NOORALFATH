@@ -76,6 +76,7 @@ Route::middleware('auth')->group(function () {
     
     // Expense Management Routes
     Route::resource('expenses', ExpenseController::class);
+    // Route::post('expenses/{expense}/', [ExpenseController::class, 'update'])->name('expenses.update');
     
     // Payment Management Routes
     Route::resource('payments', PaymentController::class);
@@ -92,6 +93,7 @@ Route::middleware('auth')->group(function () {
         Route::get('/expenses', [ReportController::class, 'expenses'])->name('expenses');
         Route::get('/profit-loss', [ReportController::class, 'profitLoss'])->name('profit-loss');
         Route::get('/summary', [ReportController::class, 'summary'])->name('summary');
+        Route::get('/tax', [ReportController::class, 'tax'])->name('tax');
     });
     
     // API Routes for AJAX requests

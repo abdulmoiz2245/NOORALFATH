@@ -75,6 +75,13 @@ const reports: ReportItem[] = [
         icon: TrendingUp,
         color: 'text-purple-600',
     },
+    {
+        title: 'Tax Reports',
+        description: 'Calculate government tax obligations based on paid invoices and deductible expenses',
+        href: '/reports/tax',
+        icon: BarChart3,
+        color: 'text-red-600',
+    },
 ];
 
 // Chart configurations
