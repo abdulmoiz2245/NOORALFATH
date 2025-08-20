@@ -116,6 +116,9 @@ class PaymentController extends Controller
             } elseif ($allSchedules->contains('status', 'partial') || $allSchedules->contains('status', 'paid')) {
                 $invoice->update(['status' => 'partially_paid']);
             }
+
+            // Update invoice paid_amount and balance_due
+            $this->updateInvoicePaymentAmounts($invoice);
         });
 
         return redirect()->route('invoices.show', $schedule->invoice_id)
@@ -214,6 +217,9 @@ class PaymentController extends Controller
             } else {
                 $invoice->update(['status' => 'sent']);
             }
+
+            // Update invoice paid_amount and balance_due
+            $this->updateInvoicePaymentAmounts($invoice);
         });
 
         return redirect()->route('payments.show', $payment)
@@ -254,9 +260,30 @@ class PaymentController extends Controller
             } else {
                 $invoice->update(['status' => 'sent']);
             }
+
+            // Update invoice paid_amount and balance_due
+            $this->updateInvoicePaymentAmounts($invoice);
         });
 
         return redirect()->route('invoices.show', $invoice->id)
             ->with('success', 'Payment deleted successfully.');
+    }
+
+    /**
+     * Update invoice paid_amount and balance_due based on all payments
+     */
+    private function updateInvoicePaymentAmounts(Invoice $invoice)
+    {
+        // Calculate total paid amount from all payments for this invoice
+        $totalPaidAmount = $invoice->payments()->sum('amount');
+        
+        // Calculate balance due
+        $balanceDue = $invoice->total_amount - $totalPaidAmount;
+        
+        // Update invoice fields
+        $invoice->update([
+            'paid_amount' => $totalPaidAmount,
+            'balance_due' => max(0, $balanceDue) // Ensure balance due is never negative
+        ]);
     }
 }

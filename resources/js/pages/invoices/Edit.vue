@@ -131,7 +131,7 @@ const form = useForm({
         quantity: item.quantity,
         unit_price: item.unit_price.toString(),
         vat_rate: (item.vat_rate || 5).toString(), // Default to 5% if not set
-        total_price: item.total_price,
+        total_price: item.total_price_w_tax || (item.quantity * item.unit_price) + ((item.quantity * item.unit_price) * ((parseFloat(item.vat_rate?.toString() || '0')) / 100)), // Use total_price_w_tax if available, otherwise calculate
         amount: item.quantity * item.unit_price, // Total amount without VAT
         tax: (item.quantity * item.unit_price) * ((parseFloat(item.vat_rate?.toString() || '0')) / 100), // Calculated tax amount
     })),
@@ -192,12 +192,14 @@ const updateItemAmount = (index: number) => {
     const unitPrice = parseFloat(item.unit_price.toString()) || 0;
     const vatRate = parseFloat(item.vat_rate.toString()) || 0;
 
+    // Amount without VAT (base amount)
     item.amount = quantity * unitPrice;
 
+    // Calculate VAT amount
     item.tax = item.amount * (vatRate / 100);
 
-    // Calculate total amount (quantity * unit price which already includes VAT)
-    item.total_price = quantity * unitPrice;
+    // Total price including VAT
+    item.total_price = item.amount + item.tax;
 };
 
 

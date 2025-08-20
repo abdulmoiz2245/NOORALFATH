@@ -281,14 +281,14 @@
                 <p class="s2" style="padding-top: 2pt;text-indent: 0pt;text-align: center;">Qty</p>
             </td>
             <td
-                style="width:44pt;border-top-style:solid;border-top-width:1pt;border-left-style:solid;border-left-width:1pt;border-bottom-style:solid;border-bottom-width:1pt;border-right-style:solid;border-right-width:1pt">
+                style="width:50pt;border-top-style:solid;border-top-width:1pt;border-left-style:solid;border-left-width:1pt;border-bottom-style:solid;border-bottom-width:1pt;border-right-style:solid;border-right-width:1pt">
                 <p class="s3"
-                    style="padding-top: 1pt;padding-left: 16pt;padding-right: 8pt;text-indent: 2pt;text-align: left;">
+                    style="padding-top: 1pt;padding-left: 5pt;padding-right: 8pt;text-indent: 2pt;text-align: left;">
                     Unit price</p>
             </td>
             <td
-                style="width:43pt;border-top-style:solid;border-top-width:1pt;border-left-style:solid;border-left-width:1pt;border-bottom-style:solid;border-bottom-width:1pt;border-right-style:solid;border-right-width:1pt">
-                <p class="s2" style="padding-top: 2pt;padding-right: 5pt;text-indent: 0pt;text-align: right;">Amount</p>
+                style="width:50pt;border-top-style:solid;border-top-width:1pt;border-left-style:solid;border-left-width:1pt;border-bottom-style:solid;border-bottom-width:1pt;border-right-style:solid;border-right-width:1pt">
+                <p class="s2" style="padding-top: 2pt;padding-right: 5pt;text-indent: 0pt;text-align: right;">Total wo Tax</p>
             </td>
             <td
                 style="width:44pt;border-top-style:solid;border-top-width:1pt;border-left-style:solid;border-left-width:1pt;border-bottom-style:solid;border-bottom-width:1pt;border-right-style:solid;border-right-width:1pt">
@@ -302,7 +302,7 @@
             </td>
             <td
                 style="width:61pt;border-top-style:solid;border-top-width:1pt;border-left-style:solid;border-left-width:1pt;border-bottom-style:solid;border-bottom-width:1pt;border-right-style:solid;border-right-width:1pt">
-                <p class="s2" style="padding-top: 2pt;padding-left: 38pt;text-indent: 0pt;text-align: left;">Total</p>
+                <p class="s2" style="padding-top: 2pt;padding-left: 20pt;text-indent: 0pt;text-align: left;">Total w Tax</p>
             </td>
         </tr>
         
@@ -328,8 +328,8 @@
             <td style="width:44pt;border-top-style:solid;border-top-width:1pt;border-left-style:solid;border-left-width:1pt;border-right-style:solid;border-right-width:1pt">
                 <p class="s4" style="padding-top: 1pt;padding-left: 8pt;text-indent: 0pt;text-align: left;">VAT {{ $item->vat_rate }}%</p>
             </td>
-            <td style="width:44pt;border-top-style:solid;border-top-width:1pt;border-left-style:solid;border-left-width:1pt;border-right-style:solid;border-right-width:1pt">
-                <p class="s5" style="padding-top: 1pt;padding-left: 8pt;text-indent: 0pt;text-align: left;">{{ number_format($item->total_price_w_tax - $item->total_price, 2) }}</p>
+            <td style="width:43pt;border-top-style:solid;border-top-width:1pt;border-left-style:solid;border-left-width:1pt;border-right-style:solid;border-right-width:1pt">
+                <p class="s5" style="padding-top: 1pt;padding-left: 8pt;padding-right:2pt;text-indent: 0pt;text-align: right;">{{ number_format($item->total_price_w_tax - $item->total_price, 2) }}</p>
             </td>
             <td style="width:61pt;border-top-style:solid;border-top-width:1pt;border-left-style:solid;border-left-width:1pt;border-right-style:solid;border-right-width:1pt">
                 <p class="s4" style="padding-top: 1pt;padding-left: 23pt;text-indent: 0pt;text-align: left;">{{ number_format($item->total_price_w_tax, 2) }}</p>

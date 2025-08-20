@@ -272,13 +272,15 @@ class QuotationController extends Controller
      */
     private function generateQuotationNumber(): string
     {
-        $year = date('Y');
+        $year = date('Y'); // keeping in case you want to extend format later
         $month = date('m');
+
         $lastQuotation = Quotation::whereYear('created_at', $year)
             ->whereMonth('created_at', $month)
             ->count();
-        
-        return sprintf('QUO-%s%s-%04d', $year, $month, $lastQuotation + 1);
+
+        // Format: NAFT/QUO/MM/000001
+        return sprintf('NAFT/QUO/%s/%06d', $month, $lastQuotation + 1);
     }
 
     /**

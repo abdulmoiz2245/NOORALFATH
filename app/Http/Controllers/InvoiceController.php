@@ -192,6 +192,8 @@ class InvoiceController extends Controller
             'tax_amount' => $totalTaxAmount,
             'total_amount' => $totalAmountWithTax,
             'discount_amount' => $validated['discount_amount'] ?? 0,
+            'paid_amount' => 0,
+            'balance_due' => $totalAmountWithTax
         ]);
 
         // Create invoice items
@@ -302,6 +304,8 @@ class InvoiceController extends Controller
             'items.*.quantity' => 'required|numeric|min:0.01',
             'items.*.unit_price' => 'required|numeric|min:0',
             'items.*.vat_rate' => 'required|numeric|min:0|max:100',
+            'items.*.total_price' => 'required|numeric|min:0',
+            'items.*.amount' => 'required|numeric|min:0',
             'payment_schedules' => 'nullable|array|min:1',
             'payment_schedules.*.description' => 'required_with:payment_schedules|string',
             'payment_schedules.*.percentage' => 'nullable|numeric|min:0|max:100',
@@ -310,6 +314,7 @@ class InvoiceController extends Controller
             'payment_schedules.*.attachments' => 'nullable|array',
             'payment_schedules.*.attachments.*' => 'nullable|file|mimes:jpg,jpeg,png,gif,webp|max:5120',
         ]);
+
 
         $subtotal = 0;
         $totalAmountWithoutTax = 0;
@@ -344,6 +349,13 @@ class InvoiceController extends Controller
             'total_amount' => $totalAmountWithTax,
         ]);
 
+        // Recalculate balance due based on existing payments
+        $totalPaidAmount = $invoice->payments()->sum('amount');
+        $balanceDue = $totalAmountWithTax - $totalPaidAmount;
+        $invoice->update([
+            'balance_due' => max(0, $balanceDue)
+        ]);
+
         // Delete existing items and create new ones
         $invoice->items()->delete();
         $totalAmountWithoutTax = 0;
@@ -351,10 +363,6 @@ class InvoiceController extends Controller
         $totalTaxAmount = 0;
 
         foreach ($validated['items'] as $item) {
-            $itemSubtotal = $item['quantity'] * $item['unit_price'];
-            $itemVat = $itemSubtotal * ($item['vat_rate'] / 100);
-            $totalPrice = $itemSubtotal + $itemVat;
-            
             $invoice->items()->create([
                 'product_id' => $item['product_id'],
                 'description' => $item['description'],
@@ -362,7 +370,8 @@ class InvoiceController extends Controller
                 'quantity' => $item['quantity'],
                 'unit_price' => $item['unit_price'],
                 'vat_rate' => $item['vat_rate'],
-                'total_price' => $totalPrice,
+                'total_price' => $item['amount'],
+                'total_price_w_tax' => $item['total_price'],
             ]);
             
         }
@@ -424,13 +433,15 @@ class InvoiceController extends Controller
      */
     private function generateInvoiceNumber(): string
     {
-        $year = date('Y');
+        $year = date('Y'); // not used in format but can be useful if needed later
         $month = date('m');
+        
         $lastInvoice = Invoice::whereYear('created_at', $year)
             ->whereMonth('created_at', $month)
             ->count();
-        
-        return sprintf('INV-%s%s-%04d', $year, $month, $lastInvoice + 1);
+
+        // Format: NAFT/INV/MM/000001
+        return sprintf('NAFT/INV/%s/%06d', $month, $lastInvoice + 1);
     }
 
     /**
