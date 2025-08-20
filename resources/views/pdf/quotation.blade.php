@@ -282,7 +282,7 @@
             </td>
             <td
                 style="width:43pt;border-top-style:solid;border-top-width:1pt;border-left-style:solid;border-left-width:1pt;border-bottom-style:solid;border-bottom-width:1pt;border-right-style:solid;border-right-width:1pt">
-                <p class="s2" style="padding-top: 2pt;padding-right: 5pt;text-indent: 0pt;text-align: right;">Amount</p>
+                <p class="s2" style="padding-top: 2pt;padding-right: 5pt;text-indent: 0pt;text-align: right;">Total wo Tax</p>
             </td>
             <td
                 style="width:44pt;border-top-style:solid;border-top-width:1pt;border-left-style:solid;border-left-width:1pt;border-bottom-style:solid;border-bottom-width:1pt;border-right-style:solid;border-right-width:1pt">
@@ -296,7 +296,7 @@
             </td>
             <td
                 style="width:61pt;border-top-style:solid;border-top-width:1pt;border-left-style:solid;border-left-width:1pt;border-bottom-style:solid;border-bottom-width:1pt;border-right-style:solid;border-right-width:1pt">
-                <p class="s2" style="padding-top: 2pt;padding-left: 38pt;text-indent: 0pt;text-align: left;">Total</p>
+                <p class="s2" style="padding-top: 2pt;padding-left: 38pt;text-indent: 0pt;text-align: left;">Total w Tax</p>
             </td>
         </tr>
         
