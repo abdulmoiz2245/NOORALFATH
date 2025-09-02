@@ -583,7 +583,9 @@ class InvoiceController extends Controller
             'defaultFont' => 'sans-serif',
         ]);
         
-        $filename = "invoice-{$invoice->invoice_number}-payment-{$payment->id}.pdf";
+        $sanitizedInvoiceNumber = str_replace(['/', '\\'], '-', $invoice->invoice_number);
+
+        $filename = "invoice-{$sanitizedInvoiceNumber}-payment-{$payment->id}.pdf";
         
         return $pdf->download($filename);
     }

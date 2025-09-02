@@ -315,7 +315,9 @@ class ServiceReportController extends Controller
             'defaultFont' => 'sans-serif',
         ]);
 
-        $filename = "service-report-{$serviceReport->service_report_number}.pdf";
+        $sanitizedReportNumber = str_replace(['/', '\\'], '-', $serviceReport->service_report_number);
+
+        $filename = "service-report-{$sanitizedReportNumber}.pdf";
 
         return $pdf->download($filename);
     }
