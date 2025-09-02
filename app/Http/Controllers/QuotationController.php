@@ -432,7 +432,9 @@ class QuotationController extends Controller
       
         ]);
 
-        $filename = "quotation-{$quotation->quotation_number}.pdf";
+        $sanitizedQuotationNumber = str_replace(['/', '\\'], '-', $quotation->quotation_number);
+
+        $filename = "quotation-{$sanitizedQuotationNumber}.pdf";
 
         return $pdf->download($filename);
     }
